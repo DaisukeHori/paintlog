@@ -57,7 +57,7 @@ export default function FileUpload({
 
   return (
     <div>
-      <span className="text-xs text-gray-500 mb-2 block">写真・動画</span>
+      <span className="text-xs text-stone-500 mb-2 block">写真・動画</span>
       {/* プレビュー */}
       {(photos.length > 0 || videos.length > 0) && (
         <div className="flex gap-2 overflow-x-auto pb-2 mb-2">
@@ -96,7 +96,7 @@ export default function FileUpload({
         <button
           onClick={() => photoRef.current?.click()}
           disabled={uploading}
-          className="flex-1 h-[72px] rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 text-gray-400 touch-manipulation active:border-blue-300"
+          className="flex-1 h-[72px] rounded-xl border-2 border-dashed border-stone-200 flex flex-col items-center justify-center gap-1 text-stone-400 touch-manipulation active:border-blue-300"
         >
           <span className="text-2xl">🖼</span>
           <span className="text-xs">写真</span>
@@ -104,7 +104,7 @@ export default function FileUpload({
         <button
           onClick={() => videoRef.current?.click()}
           disabled={uploading}
-          className="flex-1 h-[72px] rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 text-gray-400 touch-manipulation active:border-blue-300"
+          className="flex-1 h-[72px] rounded-xl border-2 border-dashed border-stone-200 flex flex-col items-center justify-center gap-1 text-stone-400 touch-manipulation active:border-blue-300"
         >
           <span className="text-2xl">🎥</span>
           <span className="text-xs">動画</span>
@@ -112,14 +112,14 @@ export default function FileUpload({
         <button
           onClick={() => cameraRef.current?.click()}
           disabled={uploading}
-          className="flex-1 h-[72px] rounded-xl border border-gray-200 bg-gray-50 flex flex-col items-center justify-center gap-1 text-gray-500 touch-manipulation active:bg-gray-100"
+          className="flex-1 h-[72px] rounded-xl border border-stone-200 bg-stone-50 flex flex-col items-center justify-center gap-1 text-stone-500 touch-manipulation active:bg-stone-100"
         >
           <span className="text-2xl">📷</span>
           <span className="text-xs">撮影</span>
         </button>
       </div>
       {uploading && (
-        <div className="mt-2 text-xs text-blue-600 text-center">
+        <div className="mt-2 text-xs text-orange-700 text-center">
           アップロード中...
         </div>
       )}

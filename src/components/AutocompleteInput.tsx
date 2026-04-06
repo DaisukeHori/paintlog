@@ -46,14 +46,14 @@ export default function AutocompleteInput({
   return (
     <div ref={wrapRef}>
       <div className="flex items-center gap-1 mb-1">
-        <span className="text-xs text-gray-500">{label}</span>
+        <span className="text-xs text-stone-500">{label}</span>
         {pinned !== undefined && (
           <button
             onClick={onPin}
             className={`ml-auto w-7 h-7 rounded-full flex items-center justify-center text-xs ${
               pinned
-                ? 'bg-purple-100 text-purple-700'
-                : 'text-gray-300 hover:bg-gray-100'
+                ? 'bg-purple-100 text-purple-600'
+                : 'text-stone-400 hover:bg-stone-100'
             }`}
           >
             📌
@@ -70,14 +70,14 @@ export default function AutocompleteInput({
         }}
         onFocus={() => setOpen(true)}
         placeholder={placeholder}
-        className="w-full h-[48px] px-4 rounded-xl border border-gray-200 text-base touch-manipulation focus:outline-none focus:border-blue-400"
+        className="w-full h-[48px] px-4 rounded-xl border border-stone-200 text-base touch-manipulation focus:outline-none focus:border-orange-600"
       />
       {open && filtered.length > 0 && (
-        <div className="mt-1 bg-white border border-gray-200 rounded-xl max-h-[200px] overflow-y-auto shadow-sm">
+        <div className="mt-1 bg-white border border-stone-200 rounded-xl max-h-[200px] overflow-y-auto shadow-sm">
           {filtered.map((s) => (
             <div
               key={s}
-              className="flex items-center justify-between px-4 py-3 active:bg-gray-50 touch-manipulation"
+              className="flex items-center justify-between px-4 py-3 active:bg-stone-50 touch-manipulation"
             >
               <span
                 className="flex-1 text-sm"
@@ -93,7 +93,7 @@ export default function AutocompleteInput({
                   e.stopPropagation();
                   onDeleteSuggestion(s);
                 }}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-300 hover:bg-red-50 hover:text-red-500 touch-manipulation"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:bg-red-50 hover:text-red-600 touch-manipulation"
               >
                 ✕
               </button>

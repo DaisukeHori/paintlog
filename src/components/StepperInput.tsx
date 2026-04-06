@@ -83,14 +83,14 @@ export default function StepperInput({
   return (
     <div>
       <div className="flex items-center gap-1 mb-1">
-        <span className="text-xs text-gray-500">{label}</span>
+        <span className="text-xs text-stone-500">{label}</span>
         {pinned !== undefined && (
           <button
             onClick={onPin}
             className={`ml-auto w-7 h-7 rounded-full flex items-center justify-center text-xs ${
               pinned
-                ? 'bg-purple-100 text-purple-700'
-                : 'text-gray-300 hover:bg-gray-100'
+                ? 'bg-purple-100 text-purple-600'
+                : 'text-stone-400 hover:bg-stone-100'
             }`}
             title={pinned ? 'デフォルト設定済み' : 'デフォルトに設定'}
           >
@@ -100,7 +100,7 @@ export default function StepperInput({
       </div>
       <div className="flex items-center gap-2">
         <button
-          className="min-w-[48px] h-[48px] rounded-xl bg-gray-100 active:bg-gray-200 flex items-center justify-center text-2xl select-none touch-manipulation"
+          className="min-w-[48px] h-[48px] rounded-xl bg-stone-100 active:bg-gray-200 flex items-center justify-center text-2xl select-none touch-manipulation"
           onPointerDown={() => startHold(-step)}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}
@@ -109,10 +109,10 @@ export default function StepperInput({
         </button>
         <div className="flex-1 text-center">
           <span className="text-2xl font-medium tabular-nums">{displayVal}</span>
-          <span className="text-xs text-gray-400 ml-1">{unit}</span>
+          <span className="text-xs text-stone-400 ml-1">{unit}</span>
         </div>
         <button
-          className="min-w-[48px] h-[48px] rounded-xl bg-gray-100 active:bg-gray-200 flex items-center justify-center text-2xl select-none touch-manipulation"
+          className="min-w-[48px] h-[48px] rounded-xl bg-stone-100 active:bg-gray-200 flex items-center justify-center text-2xl select-none touch-manipulation"
           onPointerDown={() => startHold(step)}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}
@@ -121,7 +121,7 @@ export default function StepperInput({
         </button>
       </div>
       {showBar && value !== null && (
-        <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div className="mt-2 h-2 bg-stone-100 rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-200"
             style={{
@@ -139,8 +139,8 @@ export default function StepperInput({
               onClick={() => onChange(p)}
               className={`px-3 py-1.5 rounded-lg text-xs touch-manipulation ${
                 value === p
-                  ? 'bg-blue-100 text-blue-700 border border-blue-300'
-                  : 'bg-gray-50 text-gray-500 border border-gray-200'
+                  ? 'bg-blue-100 text-blue-600 border border-blue-300'
+                  : 'bg-stone-50 text-stone-500 border border-stone-200'
               }`}
             >
               {decimals > 0 ? p.toFixed(decimals) : p}

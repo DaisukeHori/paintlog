@@ -1,5 +1,4 @@
 'use client';
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { loadDraft, clearDraft, Draft } from '@/lib/draft';
@@ -8,40 +7,20 @@ import { format } from 'date-fns';
 export default function DraftBanner() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const router = useRouter();
-
-  useEffect(() => {
-    setDraft(loadDraft());
-  }, []);
-
+  useEffect(() => { setDraft(loadDraft()); }, []);
   if (!draft || draft.dbId) return null;
-
   return (
-    <div className="mx-4 mb-3 bg-amber-50 border border-amber-200 rounded-xl p-3">
+    <div className="mx-4 mb-3 pl-card" style={{ background: 'var(--pl-warn-soft)', border: '1px solid rgba(184,134,11,0.15)' }}>
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-xs font-medium text-amber-700 mb-0.5">
-            下書きがあります
-          </div>
-          <div className="text-[11px] text-amber-600">
-            {draft.form.paint_type || '種類未設定'}
-            {' · '}
-            {format(new Date(draft.createdAt), 'M/d HH:mm')}作成
-            {draft.touchedFields.length > 0 && ` · ${draft.touchedFields.length}項目入力済み`}
+          <div className="text-xs font-semibold mb-0.5" style={{ color: 'var(--pl-warn)' }}>下書きがあります</div>
+          <div className="text-[11px]" style={{ color: 'var(--pl-text-3)' }}>
+            {draft.form.paint_type || '種類未設定'} · {format(new Date(draft.createdAt), 'M/d HH:mm')}作成
           </div>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => { clearDraft(); setDraft(null); }}
-            className="px-3 py-1.5 text-xs text-amber-600 border border-amber-300 rounded-lg touch-manipulation"
-          >
-            破棄
-          </button>
-          <button
-            onClick={() => router.push('/logs/new')}
-            className="px-3 py-1.5 text-xs bg-amber-600 text-white rounded-lg touch-manipulation"
-          >
-            続ける
-          </button>
+          <button onClick={() => { clearDraft(); setDraft(null); }} className="px-3 py-1.5 text-xs rounded-lg border border-stone-200 text-stone-500 touch-manipulation">破棄</button>
+          <button onClick={() => router.push('/logs/new')} className="px-3 py-1.5 text-xs rounded-lg font-semibold text-white touch-manipulation" style={{ background: 'var(--pl-warn)' }}>続ける</button>
         </div>
       </div>
     </div>

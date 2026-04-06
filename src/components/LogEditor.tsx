@@ -198,7 +198,7 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
     router.push('/logs');
   }
 
-  if (!form) return <div className="min-h-screen flex items-center justify-center text-gray-400">読み込み中...</div>;
+  if (!form) return <div className="min-h-screen flex items-center justify-center text-stone-400">読み込み中...</div>;
 
   function summary(catId: number): string {
     if (!form) return '';
@@ -214,9 +214,9 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
 
   const isDraft = !dbId;
   const catBadge: Record<number, string> = {
-    1: 'bg-blue-100 text-blue-700', 2: 'bg-purple-100 text-purple-700',
-    3: 'bg-teal-100 text-teal-700', 4: 'bg-amber-100 text-amber-700',
-    5: 'bg-orange-100 text-orange-700',
+    1: 'bg-blue-900/30 text-blue-400', 2: 'bg-purple-900/30 text-purple-400',
+    3: 'bg-teal-900/30 text-teal-400', 4: 'bg-amber-900/30 text-amber-400',
+    5: 'bg-orange-900/30 text-orange-400',
   };
 
   return (
@@ -224,24 +224,24 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
       <SaveStatusBar status={saveStatus} />
 
       {/* ヘッダー */}
-      <div className="sticky top-0 bg-gray-50/95 backdrop-blur-sm z-10 px-4 pt-[env(safe-area-inset-top)]">
+      <div className="sticky top-0 z-10 px-4 pt-[env(safe-area-inset-top)]" style={{ background: 'rgba(246,245,241,0.92)', backdropFilter: 'blur(20px)' }}>
         <div className="flex items-center justify-between py-3">
-          <button onClick={() => router.push('/logs')} className="text-blue-600 text-sm touch-manipulation min-w-[48px] min-h-[44px] flex items-center">
+          <button onClick={() => router.push('/logs')} className="text-sm touch-manipulation min-w-[48px] min-h-[44px] flex items-center" style={{ color: 'var(--pl-accent)' }}>
             ← 一覧
           </button>
           <div className="text-center">
-            <div className="text-sm font-medium">
-              {isDraft && <span className="text-amber-600 mr-1">下書き</span>}
+            <div className="text-sm font-semibold">
+              {isDraft && <span style={{ color: 'var(--pl-warn)' }} className="mr-1">下書き</span>}
               {form.paint_type || '新規記録'}
             </div>
-            <div className="text-[10px] text-gray-400">
+            <div className="text-[10px]" style={{ color: 'var(--pl-text-3)' }}>
               {isDraft ? '操作開始で自動保存' : saveStatus === 'saving' ? '保存中...' : saveStatus === 'saved' ? '✓ 保存済み' : '自動保存'}
             </div>
           </div>
           {dbId ? (
-            <button onClick={handleDelete} className="text-red-400 text-xs touch-manipulation min-w-[48px] min-h-[44px] flex items-center justify-end">削除</button>
+            <button onClick={handleDelete} className="text-xs touch-manipulation min-w-[48px] min-h-[44px] flex items-center justify-end" style={{ color: 'var(--pl-danger)' }}>削除</button>
           ) : (
-            <button onClick={() => { clearDraft(); router.push('/logs'); }} className="text-gray-400 text-xs touch-manipulation min-w-[48px] min-h-[44px] flex items-center justify-end">破棄</button>
+            <button onClick={() => { clearDraft(); router.push('/logs'); }} className="text-xs touch-manipulation min-w-[48px] min-h-[44px] flex items-center justify-end" style={{ color: 'var(--pl-text-3)' }}>破棄</button>
           )}
         </div>
       </div>
@@ -275,13 +275,13 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
           { id: 1, label: '環境条件', border: 'border-blue-200', content: (
             <>
               <div>
-                <span className="text-xs text-gray-500 mb-1 block">塗装日時</span>
+                <span className="text-xs text-stone-500 mb-1 block">塗装日時</span>
                 <div className="flex gap-2">
                   <button onClick={() => set('painted_at', new Date().toISOString())}
-                    className="px-4 py-2.5 bg-blue-50 text-blue-700 rounded-xl text-sm font-medium touch-manipulation border border-blue-200 min-h-[44px]">現在時刻</button>
+                    className="px-4 py-2.5 bg-blue-50 text-blue-600 rounded-xl text-sm font-medium touch-manipulation border border-blue-200 min-h-[44px]">現在時刻</button>
                   <input type="datetime-local" value={form.painted_at?.slice(0, 16) || ''}
                     onChange={(e) => set('painted_at', new Date(e.target.value).toISOString())}
-                    className="flex-1 h-[44px] px-3 rounded-xl border border-gray-200 text-sm touch-manipulation" />
+                    className="flex-1 h-[44px] px-3 rounded-xl border border-stone-200 text-sm touch-manipulation" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -291,7 +291,7 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <StepperInput label="ブース気温" unit="℃" value={form.booth_temp} onChange={(v) => set('booth_temp', v)} min={-10} max={50} pinned={'booth_temp' in pinnedFields} onPin={() => togglePin('booth_temp')} />
-                  <button onClick={() => set('booth_temp', form.ambient_temp)} className="mt-1 w-full text-xs text-gray-400 py-1.5 bg-gray-50 rounded-lg touch-manipulation min-h-[32px]">= 気温と同じ</button>
+                  <button onClick={() => set('booth_temp', form.ambient_temp)} className="mt-1 w-full text-xs text-stone-400 py-1.5 bg-stone-50 rounded-lg touch-manipulation min-h-[32px]">= 気温と同じ</button>
                 </div>
                 <StepperInput label="ワーク温度" unit="℃" value={form.workpiece_temp} onChange={(v) => set('workpiece_temp', v)} min={-10} max={80} pinned={'workpiece_temp' in pinnedFields} onPin={() => togglePin('workpiece_temp')} />
               </div>
@@ -347,21 +347,21 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
                 <VideoAnalysis frameUrls={form.video_urls} />
               )}
               <div>
-                <span className="text-xs text-gray-500 mb-1 block">コメント</span>
+                <span className="text-xs text-stone-500 mb-1 block">コメント</span>
                 <textarea value={form.comment || ''} onChange={(e) => set('comment', e.target.value)} placeholder="気づき・メモ・反省点" rows={3}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm touch-manipulation focus:outline-none focus:border-blue-400 resize-none" />
+                  className="w-full px-4 py-3 rounded-xl border border-stone-200 text-sm touch-manipulation focus:outline-none focus:border-orange-600 resize-none" />
               </div>
             </>
           )},
         ].map((cat) => (
-          <div key={cat.id} className={`bg-white rounded-xl border ${openCat === cat.id ? cat.border : 'border-gray-200'}`}>
-            <button onClick={() => setOpenCat(openCat === cat.id ? 0 : cat.id)} className="w-full flex items-center justify-between p-3 touch-manipulation min-h-[52px]">
+          <div key={cat.id} className="pl-cat">
+            <button onClick={() => setOpenCat(openCat === cat.id ? 0 : cat.id)} className="pl-cat-header">
               <div className="flex items-center gap-2">
                 <span className={`text-[11px] px-2 py-0.5 rounded ${catBadge[cat.id]}`}>{cat.id}</span>
                 <span className="font-medium text-sm">{cat.label}</span>
-                {openCat !== cat.id && <span className="text-xs text-gray-400 truncate max-w-[140px]">{summary(cat.id)}</span>}
+                {openCat !== cat.id && <span className="text-xs text-stone-400 truncate max-w-[140px]">{summary(cat.id)}</span>}
               </div>
-              <span className="text-gray-400 text-xs">{openCat === cat.id ? '▲' : '▼'}</span>
+              <span className="text-stone-400 text-xs">{openCat === cat.id ? '▲' : '▼'}</span>
             </button>
             {openCat === cat.id && <div className="px-3 pb-4 space-y-4">{cat.content}</div>}
           </div>
@@ -370,7 +370,7 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
         {/* 確定ボタン（下書きモード時のみ表示） */}
         {isDraft && (
           <button onClick={handleConfirm}
-            className="w-full h-[52px] rounded-xl bg-blue-600 text-white font-medium text-base touch-manipulation active:bg-blue-700 mt-4">
+            className="pl-btn pl-btn-primary mt-4">
             ✓ この内容で記録を確定
           </button>
         )}

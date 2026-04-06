@@ -1,26 +1,100 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-  * { -webkit-tap-highlight-color: transparent; }
-  input[type="range"] {
-    -webkit-appearance: none;
-    appearance: none;
-    height: 12px;
-    border-radius: 6px;
-    background: #e5e7eb;
-    outline: none;
-  }
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: #2563eb;
-    cursor: pointer;
-    border: 3px solid white;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  }
+:root {
+  --pl-bg: #F6F5F1;
+  --pl-surface: #FFFFFF;
+  --pl-surface-2: #F0EFEB;
+  --pl-surface-3: #E8E6E1;
+  --pl-border: #E0DED8;
+  --pl-border-hover: #C8C5BD;
+  --pl-text: #1A1A1A;
+  --pl-text-2: #6B6B6B;
+  --pl-text-3: #A0A0A0;
+  --pl-accent: #D35322;
+  --pl-accent-light: #E8793B;
+  --pl-accent-soft: rgba(211,83,34,0.08);
+  --pl-success: #1A8A5C;
+  --pl-success-soft: rgba(26,138,92,0.08);
+  --pl-warn: #B8860B;
+  --pl-warn-soft: rgba(184,134,11,0.08);
+  --pl-danger: #C53030;
+  --pl-danger-soft: rgba(197,48,48,0.07);
+  --pl-blue: #2563EB;
+  --pl-blue-soft: rgba(37,99,235,0.07);
+  --pl-purple: #7C3AED;
+  --pl-purple-soft: rgba(124,58,237,0.07);
+  --pl-teal: #0D9488;
+  --pl-teal-soft: rgba(13,148,136,0.07);
+  --pl-radius: 14px;
+  --pl-radius-sm: 10px;
 }
+
+* { -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--pl-bg);
+  color: var(--pl-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Hiragino Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+}
+
+.pl-card {
+  background: var(--pl-surface);
+  border: 1px solid var(--pl-border);
+  border-radius: var(--pl-radius);
+  padding: 1rem;
+}
+
+.pl-btn {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 50px; border-radius: var(--pl-radius-sm);
+  font-weight: 600; font-size: 15px; width: 100%;
+  transition: all 0.15s; touch-action: manipulation;
+  user-select: none; cursor: pointer; border: none;
+}
+.pl-btn-primary {
+  background: var(--pl-accent); color: white;
+  box-shadow: 0 2px 8px rgba(211,83,34,0.2);
+}
+.pl-btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+.pl-btn-secondary { background: var(--pl-surface-2); color: var(--pl-text-2); border: 1px solid var(--pl-border); }
+
+.pl-input {
+  width: 100%; min-height: 50px; padding: 0 16px;
+  background: var(--pl-surface); border: 1.5px solid var(--pl-border);
+  border-radius: var(--pl-radius-sm); color: var(--pl-text);
+  font-size: 15px; outline: none; transition: border-color 0.15s;
+  touch-action: manipulation;
+}
+.pl-input:focus { border-color: var(--pl-accent); }
+.pl-input::placeholder { color: var(--pl-text-3); }
+
+.pl-badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+}
+
+.pl-stat { background: var(--pl-surface); border: 1px solid var(--pl-border); border-radius: var(--pl-radius-sm); padding: 14px; text-align: center; }
+.pl-stat-value { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.pl-stat-label { font-size: 11px; color: var(--pl-text-3); margin-top: 2px; }
+
+.pl-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(255,255,255,0.88); backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid var(--pl-border); padding-bottom: env(safe-area-inset-bottom); z-index: 50;
+}
+.pl-nav-inner { display: grid; grid-template-columns: repeat(4, 1fr); height: 52px; }
+.pl-nav-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  color: var(--pl-text-3); font-size: 10px; font-weight: 600;
+  touch-action: manipulation; cursor: pointer; background: none; border: none;
+}
+.pl-nav-item.active { color: var(--pl-accent); }
+.pl-nav-icon { font-size: 20px; line-height: 1; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.pl-fade-in { animation: fadeIn 0.25s ease forwards; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+.pl-pulse { animation: pulse 1.5s ease-in-out infinite; }

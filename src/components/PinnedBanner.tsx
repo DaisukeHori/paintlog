@@ -23,7 +23,7 @@ export default function PinnedBanner({ pinnedFields, fieldLabels }: PinnedBanner
       </button>
       <div className="flex items-center gap-2 mb-1.5">
         <span className="text-sm">📌</span>
-        <span className="text-xs font-medium text-purple-700">
+        <span className="text-xs font-medium text-purple-600">
           固定値を適用しました
         </span>
       </div>

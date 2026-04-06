@@ -73,8 +73,8 @@ describe('SaveStatusBar', () => {
 describe('BottomNav', () => {
   it('4つのタブを表示する', () => {
     render(<BottomNav />);
-    expect(screen.getByText('記録一覧')).toBeInTheDocument();
-    expect(screen.getByText('新規作成')).toBeInTheDocument();
+    expect(screen.getByText('記録')).toBeInTheDocument();
+    expect(screen.getByText('新規')).toBeInTheDocument();
     expect(screen.getByText('分析')).toBeInTheDocument();
     expect(screen.getByText('設定')).toBeInTheDocument();
   });
@@ -82,9 +82,9 @@ describe('BottomNav', () => {
   it('各タブにアイコンがある', () => {
     render(<BottomNav />);
     expect(screen.getByText('📋')).toBeInTheDocument();
-    expect(screen.getByText('➕')).toBeInTheDocument();
+    expect(screen.getByText('✚')).toBeInTheDocument();
     expect(screen.getByText('📊')).toBeInTheDocument();
-    expect(screen.getByText('⚙️')).toBeInTheDocument();
+    expect(screen.getByText('⚙')).toBeInTheDocument();
   });
 
   it('リンクが正しいhrefを持つ', () => {
@@ -99,21 +99,21 @@ describe('BottomNav', () => {
 
   it('現在パスのタブがアクティブスタイル', () => {
     render(<BottomNav />);
-    const logLink = screen.getByText('記録一覧').closest('a');
-    expect(logLink?.className).toContain('text-blue-600');
+    const logLink = screen.getByText('記録').closest('a');
+    expect(logLink?.className).toContain('active');
   });
 
   it('固定ナビバーである', () => {
     const { container } = render(<BottomNav />);
     const nav = container.querySelector('nav');
-    expect(nav?.className).toContain('fixed');
-    expect(nav?.className).toContain('bottom-0');
+    expect(nav?.className).toContain('pl-nav');
+    // pl-nav handles fixed positioning via CSS
   });
 
   it('z-indexが設定されている', () => {
     const { container } = render(<BottomNav />);
     const nav = container.querySelector('nav');
-    expect(nav?.className).toContain('z-50');
+    expect(nav?.className).toContain('pl-nav');
   });
 });
 

@@ -11,124 +11,146 @@ export default function LogsPage() {
   const [logs, setLogs] = useState<PaintLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const router = useRouter();
   const supabase = createClient();
-
-  useEffect(() => {
-    loadLogs();
-  }, []);
-
+  useEffect(() => { loadLogs(); }, []);
   async function loadLogs() {
-    const { data } = await supabase
-      .from('paint_logs')
-      .select('*')
-      .order('painted_at', { ascending: false })
-      .limit(50);
-    setLogs((data as PaintLog[]) || []);
-    setLoading(false);
+    const { data } = await supabase.from('paint_logs').select('*').order('painted_at', { ascending: false }).limit(100);
+    setLogs((data as PaintLog[]) || []); setLoading(false);
   }
-
-  const filtered = logs.filter(
-    (l) =>
-      !filter ||
-      l.paint_type?.includes(filter) ||
-      l.paint_product?.includes(filter) ||
-      l.comment?.includes(filter)
-  );
+  const filtered = logs.filter((l) => !filter || l.paint_type?.includes(filter) || l.paint_product?.includes(filter) || l.comment?.includes(filter));
 
   return (
     <div>
-      {/* ヘッダー */}
-      <div className="sticky top-0 bg-gray-50 z-10 px-4 pt-[env(safe-area-inset-top)] pb-2">
+      {/* Header */}
+      <div className="sticky top-0 z-10 px-4 pt-[env(safe-area-inset-top)] pb-3" style={{ background: 'rgba(246,245,241,0.92)', backdropFilter: 'blur(20px)' }}>
         <div className="flex items-center justify-between py-3">
-          <h1 className="text-lg font-medium">塗装記録</h1>
-          <span className="text-xs text-gray-400">{logs.length}件</span>
+          <h1 className="text-lg font-bold">塗装記録</h1>
+          <div className="flex items-center gap-2">
+            <span className="pl-badge" style={{ background: 'var(--pl-accent-soft)', color: 'var(--pl-accent)' }}>{logs.length}件</span>
+            {/* View toggle */}
+            <div className="flex rounded-lg overflow-hidden border" style={{ borderColor: 'var(--pl-border)' }}>
+              <button onClick={() => setViewMode('grid')}
+                className="px-2.5 py-1.5 text-xs font-semibold touch-manipulation"
+                style={{ background: viewMode === 'grid' ? 'var(--pl-accent)' : 'var(--pl-surface)', color: viewMode === 'grid' ? 'white' : 'var(--pl-text-3)' }}>
+                ▦
+              </button>
+              <button onClick={() => setViewMode('list')}
+                className="px-2.5 py-1.5 text-xs font-semibold touch-manipulation"
+                style={{ background: viewMode === 'list' ? 'var(--pl-accent)' : 'var(--pl-surface)', color: viewMode === 'list' ? 'white' : 'var(--pl-text-3)' }}>
+                ☰
+              </button>
+            </div>
+          </div>
         </div>
-        <input
-          type="text"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          placeholder="検索..."
-          className="w-full h-[44px] px-4 rounded-xl border border-gray-200 text-sm touch-manipulation focus:outline-none focus:border-blue-400 bg-white"
-        />
+        <input type="text" value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="塗料名・品番で検索..." className="pl-input" style={{ minHeight: '44px' }} />
       </div>
 
-      {/* リスト */}
       <DraftBanner />
-      <div className="px-4 pt-2 space-y-2">
-        {loading && (
-          <div className="text-center text-gray-400 py-12">読み込み中...</div>
-        )}
+
+      <div className="px-4 pb-4">
+        {loading && <div className="text-center py-16 pl-pulse" style={{ color: 'var(--pl-text-3)' }}>読み込み中...</div>}
+
         {!loading && filtered.length === 0 && (
-          <div className="text-center text-gray-400 py-12">
-            <div className="text-4xl mb-2">🎨</div>
-            <div>記録がありません</div>
-            <button
-              onClick={() => router.push('/logs/new')}
-              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-xl text-sm touch-manipulation"
-            >
-              最初の記録を作成
-            </button>
+          <div className="text-center py-16" style={{ color: 'var(--pl-text-3)' }}>
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center text-3xl" style={{ background: 'var(--pl-accent-soft)' }}>🎨</div>
+            <div className="mb-4 text-sm">まだ記録がありません</div>
+            <button onClick={() => router.push('/logs/new')} className="pl-btn pl-btn-primary" style={{ width: 'auto', padding: '0 32px', display: 'inline-flex' }}>最初の記録を作成</button>
           </div>
         )}
-        {filtered.map((log) => (
-          <button
-            key={log.id}
-            onClick={() => router.push(`/logs/${log.id}`)}
-            className="w-full bg-white rounded-xl border border-gray-200 p-4 text-left touch-manipulation active:bg-gray-50"
-          >
-            <div className="flex items-start justify-between mb-1">
-              <div className="font-medium text-sm">
-                {log.paint_type || '種類未設定'}
-              </div>
-              <div className="text-[10px] text-gray-400">
-                {format(new Date(log.painted_at), 'M/d HH:mm')}
-              </div>
-            </div>
-            {log.paint_product && (
-              <div className="text-xs text-gray-500 mb-1.5">{log.paint_product}</div>
-            )}
-            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-gray-400">
-              {log.ambient_temp !== null && <span>{log.ambient_temp}℃</span>}
-              {log.ambient_humidity !== null && <span>{log.ambient_humidity}%</span>}
-              {log.air_pressure !== null && <span>{log.air_pressure}MPa</span>}
-              {log.throttle_turns !== null && (
-                <span>絞り{turnsToDisplay(log.throttle_turns)}</span>
-              )}
-              {log.film_thickness !== null && <span>{log.film_thickness}μm</span>}
-              {log.coat_count !== null && <span>{log.coat_count}コート</span>}
-            </div>
-            {log.defects.length > 0 && (
-              <div className="flex gap-1 mt-1.5">
-                {log.defects.map((d) => (
-                  <span
-                    key={d}
-                    className="text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded"
-                  >
-                    {d}
-                  </span>
-                ))}
-              </div>
-            )}
-            {log.photo_urls.length > 0 && (
-              <div className="flex gap-1 mt-2">
-                {log.photo_urls.slice(0, 3).map((url, i) => (
-                  <img
-                    key={i}
-                    src={url}
-                    alt=""
-                    className="w-12 h-12 object-cover rounded-lg"
-                  />
-                ))}
-                {log.photo_urls.length > 3 && (
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-400">
-                    +{log.photo_urls.length - 3}
+
+        {/* Grid view (Mercari-style photo cards) */}
+        {viewMode === 'grid' && (
+          <div className="grid grid-cols-2 gap-2 pt-2">
+            {filtered.map((log, i) => (
+              <button key={log.id} onClick={() => router.push(`/logs/${log.id}`)}
+                className="text-left touch-manipulation active:scale-[0.97] transition-transform rounded-2xl overflow-hidden pl-fade-in"
+                style={{ background: 'var(--pl-surface)', border: '1px solid var(--pl-border)', animationDelay: `${i * 0.03}s` }}>
+                {/* Photo area */}
+                <div className="relative aspect-square overflow-hidden" style={{ background: 'var(--pl-surface-2)' }}>
+                  {log.photo_urls.length > 0 ? (
+                    <img src={log.photo_urls[0]} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-1">
+                      <span className="text-3xl opacity-30">🎨</span>
+                      <span className="text-[10px]" style={{ color: 'var(--pl-text-3)' }}>写真なし</span>
+                    </div>
+                  )}
+                  {/* Photo count badge */}
+                  {log.photo_urls.length > 1 && (
+                    <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-bold text-white" style={{ background: 'rgba(0,0,0,0.55)' }}>
+                      {log.photo_urls.length}枚
+                    </div>
+                  )}
+                  {/* Defect badge */}
+                  {log.defects.length > 0 && (
+                    <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style={{ background: 'var(--pl-danger)' }}>
+                      {log.defects[0]}{log.defects.length > 1 ? ` +${log.defects.length - 1}` : ''}
+                    </div>
+                  )}
+                </div>
+                {/* Info area */}
+                <div className="p-2.5">
+                  <div className="font-semibold text-xs truncate">{log.paint_type || '種類未設定'}</div>
+                  <div className="text-[10px] mt-0.5 truncate" style={{ color: 'var(--pl-text-2)' }}>
+                    {log.paint_product || ''}
                   </div>
-                )}
-              </div>
-            )}
-          </button>
-        ))}
+                  <div className="flex items-center justify-between mt-1.5">
+                    <div className="flex gap-1.5 text-[10px] font-medium" style={{ color: 'var(--pl-text-3)' }}>
+                      {log.ambient_temp !== null && <span style={{ color: 'var(--pl-blue)' }}>{log.ambient_temp}℃</span>}
+                      {log.air_pressure !== null && <span style={{ color: 'var(--pl-accent)' }}>{log.air_pressure}MPa</span>}
+                      {log.film_thickness !== null && <span>{log.film_thickness}μm</span>}
+                    </div>
+                    <div className="text-[9px]" style={{ color: 'var(--pl-text-3)' }}>
+                      {format(new Date(log.painted_at), 'M/d')}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* List view (original style) */}
+        {viewMode === 'list' && (
+          <div className="space-y-2 pt-2">
+            {filtered.map((log, i) => (
+              <button key={log.id} onClick={() => router.push(`/logs/${log.id}`)}
+                className="w-full pl-card text-left touch-manipulation active:scale-[0.99] transition-transform pl-fade-in" style={{ animationDelay: `${i * 0.03}s` }}>
+                <div className="flex gap-3">
+                  {/* Thumbnail */}
+                  {log.photo_urls.length > 0 ? (
+                    <img src={log.photo_urls[0]} alt="" className="w-16 h-16 object-cover rounded-xl flex-shrink-0" style={{ border: '1px solid var(--pl-border)' }} />
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ background: 'var(--pl-surface-2)' }}>
+                      <span className="text-xl opacity-30">🎨</span>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between mb-0.5">
+                      <div className="font-semibold text-sm truncate">{log.paint_type || '種類未設定'}</div>
+                      <div className="text-[10px] flex-shrink-0 ml-2" style={{ color: 'var(--pl-text-3)' }}>{format(new Date(log.painted_at), 'M/d HH:mm')}</div>
+                    </div>
+                    {log.paint_product && <div className="text-xs truncate" style={{ color: 'var(--pl-text-2)' }}>{log.paint_product}</div>}
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] font-medium mt-1" style={{ color: 'var(--pl-text-3)' }}>
+                      {log.ambient_temp !== null && <span style={{ color: 'var(--pl-blue)' }}>{log.ambient_temp}℃</span>}
+                      {log.ambient_humidity !== null && <span style={{ color: 'var(--pl-teal)' }}>{log.ambient_humidity}%</span>}
+                      {log.air_pressure !== null && <span style={{ color: 'var(--pl-accent)' }}>{log.air_pressure}MPa</span>}
+                      {log.film_thickness !== null && <span>{log.film_thickness}μm</span>}
+                      {log.coat_count !== null && <span>{log.coat_count}コート</span>}
+                    </div>
+                    {log.defects.length > 0 && (
+                      <div className="flex gap-1 mt-1">
+                        {log.defects.map((d) => <span key={d} className="pl-badge" style={{ background: 'var(--pl-danger-soft)', color: 'var(--pl-danger)', fontSize: '10px' }}>{d}</span>)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

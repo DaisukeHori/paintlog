@@ -52,14 +52,14 @@ export default function TurnsInput({
   return (
     <div>
       <div className="flex items-center gap-1 mb-1">
-        <span className="text-xs text-gray-500">{label}</span>
+        <span className="text-xs text-stone-500">{label}</span>
         {pinned !== undefined && (
           <button
             onClick={onPin}
             className={`ml-auto w-7 h-7 rounded-full flex items-center justify-center text-xs ${
               pinned
-                ? 'bg-purple-100 text-purple-700'
-                : 'text-gray-300 hover:bg-gray-100'
+                ? 'bg-purple-100 text-purple-600'
+                : 'text-stone-400 hover:bg-stone-100'
             }`}
           >
             📌
@@ -68,7 +68,7 @@ export default function TurnsInput({
       </div>
       <div className="flex items-center gap-2">
         <button
-          className="min-w-[48px] h-[48px] rounded-xl bg-gray-100 active:bg-gray-200 flex items-center justify-center text-2xl select-none touch-manipulation"
+          className="min-w-[48px] h-[48px] rounded-xl bg-stone-100 active:bg-gray-200 flex items-center justify-center text-2xl select-none touch-manipulation"
           onPointerDown={() => startHold(-0.25)}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}
@@ -79,10 +79,10 @@ export default function TurnsInput({
           <div className="text-2xl font-medium">
             {turnsToDisplay(current)}
           </div>
-          <div className="text-[11px] text-gray-400">回転</div>
+          <div className="text-[11px] text-stone-400">回転</div>
         </div>
         <button
-          className="min-w-[48px] h-[48px] rounded-xl bg-gray-100 active:bg-gray-200 flex items-center justify-center text-2xl select-none touch-manipulation"
+          className="min-w-[48px] h-[48px] rounded-xl bg-stone-100 active:bg-gray-200 flex items-center justify-center text-2xl select-none touch-manipulation"
           onPointerDown={() => startHold(0.25)}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}

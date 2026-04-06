@@ -98,7 +98,7 @@ export default function SettingsPage() {
     await supabase.auth.signOut(); router.push('/login');
   }
 
-  if (loading) return <div className="text-center py-20 text-gray-400">読み込み中...</div>;
+  if (loading) return <div className="text-center py-20 text-stone-400">読み込み中...</div>;
 
   const pinnedEntries = Object.entries(pinned);
   const tierColors: Record<string, string> = {
@@ -107,7 +107,7 @@ export default function SettingsPage() {
     balanced: 'bg-teal-50 text-teal-700',
     economy: 'bg-green-50 text-green-700',
     legacy: 'bg-gray-100 text-gray-600',
-    'legacy-economy': 'bg-gray-100 text-gray-500',
+    'legacy-economy': 'bg-gray-100 text-stone-500',
     coding: 'bg-amber-50 text-amber-700',
     'coding-economy': 'bg-amber-50 text-amber-600',
     'coding-nano': 'bg-amber-50 text-amber-500',
@@ -115,15 +115,15 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <div className="sticky top-0 bg-gray-50 z-10 px-4 pt-[env(safe-area-inset-top)]">
+      <div className="sticky top-0 bg-stone-50 z-10 px-4 pt-[env(safe-area-inset-top)]">
         <div className="py-3"><h1 className="text-lg font-medium">設定</h1></div>
       </div>
 
       <div className="px-4 space-y-4 pb-8">
         {/* AIモデル設定 */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="bg-white rounded-xl border border-stone-200 p-4">
           <div className="font-medium text-sm mb-3">🤖 AI分析モデル設定</div>
-          <div className="bg-gray-50 rounded-lg px-3 py-2 text-[11px] text-gray-500 mb-3">
+          <div className="bg-stone-50 rounded-lg px-3 py-2 text-[11px] text-stone-500 mb-3">
             各AI機能で使用するモデルを選択できます。高精度モデルは高コスト、軽量モデルは低コスト・高速です。
           </div>
 
@@ -135,11 +135,11 @@ export default function SettingsPage() {
                 : availableModels;
 
               return (
-                <div key={feat.key} className="border-b border-gray-100 pb-3 last:border-0">
+                <div key={feat.key} className="border-b border-stone-100 pb-3 last:border-0">
                   <div className="flex items-start justify-between mb-1.5">
                     <div>
                       <div className="text-sm font-medium">{feat.label}</div>
-                      <div className="text-[11px] text-gray-400">{feat.desc}</div>
+                      <div className="text-[11px] text-stone-400">{feat.desc}</div>
                     </div>
                     {feat.needsVision && (
                       <span className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded">Vision</span>
@@ -148,7 +148,7 @@ export default function SettingsPage() {
                   <select
                     value={currentModel}
                     onChange={(e) => setModel(feat.key, e.target.value)}
-                    className="w-full h-[44px] px-3 rounded-xl border border-gray-200 text-sm touch-manipulation bg-white appearance-none"
+                    className="w-full h-[44px] px-3 rounded-xl border border-stone-200 text-sm touch-manipulation bg-white appearance-none"
                   >
                     {filteredModels.map((m) => (
                       <option key={m.id} value={m.id}>
@@ -162,10 +162,10 @@ export default function SettingsPage() {
                   {/* 選択中モデルのバッジ */}
                   {availableModels.find((m) => m.id === currentModel) && (
                     <div className="mt-1 flex items-center gap-2">
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${tierColors[availableModels.find((m) => m.id === currentModel)?.tier || ''] || 'bg-gray-100 text-gray-500'}`}>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${tierColors[availableModels.find((m) => m.id === currentModel)?.tier || ''] || 'bg-gray-100 text-stone-500'}`}>
                         {availableModels.find((m) => m.id === currentModel)?.tier}
                       </span>
-                      <span className="text-[10px] text-gray-400">
+                      <span className="text-[10px] text-stone-400">
                         {availableModels.find((m) => m.id === currentModel)?.price}/MTok
                       </span>
                     </div>
@@ -177,36 +177,36 @@ export default function SettingsPage() {
         </div>
 
         {/* デフォルト値設定 */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="bg-white rounded-xl border border-stone-200 p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="font-medium text-sm">📌 デフォルト値</div>
             {pinnedEntries.length > 0 && (
-              <button onClick={clearAllPins} className="text-xs text-red-500 touch-manipulation">全クリア</button>
+              <button onClick={clearAllPins} className="text-xs text-red-600 touch-manipulation">全クリア</button>
             )}
           </div>
-          <div className="bg-gray-50 rounded-lg px-3 py-2 text-[11px] text-gray-500 mb-3">
+          <div className="bg-stone-50 rounded-lg px-3 py-2 text-[11px] text-stone-500 mb-3">
             固定値 → 毎回この値で開始 / 前回値 → 直近の入力を引き継ぎ
           </div>
-          <div className="flex items-center justify-between py-3 border-b border-gray-100">
+          <div className="flex items-center justify-between py-3 border-b border-stone-100">
             <span className="text-sm">ピンなし項目に前回値を適用</span>
             <button onClick={toggleUseLastValue}
-              className={`w-11 h-6 rounded-full relative transition-colors ${useLastValue ? 'bg-blue-600' : 'bg-gray-300'}`}>
+              className={`w-11 h-6 rounded-full relative transition-colors ${useLastValue ? 'bg-orange-700' : 'bg-stone-300'}`}>
               <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all ${useLastValue ? 'left-[22px]' : 'left-0.5'}`} />
             </button>
           </div>
           {pinnedEntries.length === 0 ? (
-            <div className="text-xs text-gray-400 py-4 text-center">
+            <div className="text-xs text-stone-400 py-4 text-center">
               固定値はありません。記録作成画面で📌アイコンを押すと設定できます。
             </div>
           ) : (
             pinnedEntries.map(([key, val]) => (
-              <div key={key} className="flex items-center justify-between py-2.5 border-b border-gray-100">
+              <div key={key} className="flex items-center justify-between py-2.5 border-b border-stone-100">
                 <div>
                   <div className="text-sm">{FIELD_LABELS[key] || key}</div>
                   <div className="text-xs text-purple-600 font-medium">{String(val)}</div>
                 </div>
                 <button onClick={() => removePin(key)}
-                  className="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-500 touch-manipulation">✕</button>
+                  className="w-8 h-8 flex items-center justify-center text-stone-300 hover:text-red-600 touch-manipulation">✕</button>
               </div>
             ))
           )}
@@ -214,7 +214,7 @@ export default function SettingsPage() {
 
         {/* ログアウト */}
         <button onClick={handleLogout}
-          className="w-full py-3 bg-white rounded-xl border border-gray-200 text-red-500 text-sm touch-manipulation">
+          className="w-full py-3 bg-white rounded-xl border border-stone-200 text-red-600 text-sm touch-manipulation">
           ログアウト
         </button>
       </div>

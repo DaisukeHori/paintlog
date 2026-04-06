@@ -19,7 +19,7 @@ export function DefectChips({ value, onChange }: DefectChipsProps) {
 
   return (
     <div>
-      <span className="text-xs text-gray-500 mb-1 block">不具合（タップで選択）</span>
+      <span className="text-xs text-stone-500 mb-1 block">不具合（タップで選択）</span>
       <div className="flex flex-wrap gap-2">
         {DEFECT_OPTIONS.map((d) => {
           const on = value.includes(d);
@@ -30,7 +30,7 @@ export function DefectChips({ value, onChange }: DefectChipsProps) {
               className={`px-4 py-2.5 rounded-full text-sm touch-manipulation border ${
                 on
                   ? 'bg-red-50 border-red-300 text-red-700'
-                  : 'bg-white border-gray-200 text-gray-600'
+                  : 'bg-white border-stone-200 text-stone-500'
               }`}
             >
               {d}
@@ -38,7 +38,7 @@ export function DefectChips({ value, onChange }: DefectChipsProps) {
           );
         })}
       </div>
-      <div className="text-[11px] text-gray-400 mt-1">
+      <div className="text-[11px] text-stone-400 mt-1">
         選択なし = 不具合なし
       </div>
     </div>
@@ -58,12 +58,12 @@ export function CoatSelector({ value, onChange, pinned, onPin }: CoatSelectorPro
   return (
     <div>
       <div className="flex items-center gap-1 mb-1">
-        <span className="text-xs text-gray-500">コート数</span>
+        <span className="text-xs text-stone-500">コート数</span>
         {pinned !== undefined && (
           <button
             onClick={onPin}
             className={`ml-auto w-7 h-7 rounded-full flex items-center justify-center text-xs ${
-              pinned ? 'bg-purple-100 text-purple-700' : 'text-gray-300'
+              pinned ? 'bg-purple-100 text-purple-600' : 'text-stone-400'
             }`}
           >
             📌
@@ -77,8 +77,8 @@ export function CoatSelector({ value, onChange, pinned, onPin }: CoatSelectorPro
             onClick={() => onChange(n)}
             className={`min-w-[48px] h-[48px] rounded-xl flex items-center justify-center text-base font-medium touch-manipulation border ${
               value === n
-                ? 'bg-blue-50 border-blue-300 text-blue-700'
-                : 'bg-white border-gray-200 text-gray-600'
+                ? 'bg-blue-50 border-blue-300 text-blue-600'
+                : 'bg-white border-stone-200 text-stone-500'
             }`}
           >
             {n === 6 ? '6+' : n}
@@ -117,12 +117,12 @@ export function SliderInput({
   return (
     <div>
       <div className="flex items-center gap-1 mb-1">
-        <span className="text-xs text-gray-500">{label}</span>
+        <span className="text-xs text-stone-500">{label}</span>
         {pinned !== undefined && (
           <button
             onClick={onPin}
             className={`ml-auto w-7 h-7 rounded-full flex items-center justify-center text-xs ${
-              pinned ? 'bg-purple-100 text-purple-700' : 'text-gray-300'
+              pinned ? 'bg-purple-100 text-purple-600' : 'text-stone-400'
             }`}
           >
             📌
@@ -142,7 +142,7 @@ export function SliderInput({
         />
         <div className="min-w-[60px] text-right">
           <span className="text-xl font-medium tabular-nums">{current}</span>
-          <span className="text-xs text-gray-400 ml-0.5">{unit}</span>
+          <span className="text-xs text-stone-400 ml-0.5">{unit}</span>
         </div>
       </div>
     </div>
