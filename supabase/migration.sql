@@ -115,3 +115,13 @@ create policy "Users can manage own custom fields" on public.custom_field_defini
 create unique index idx_custom_field_key on public.custom_field_definitions(user_id, field_key);
 
 -- 5. Storage bucket (R2を使うが、Supabase側にメタデータ不要)
+
+-- モデル設定カラム追加
+alter table public.user_defaults add column if not exists model_preferences jsonb default '{
+  "photo": "gpt-5.4",
+  "risk": "gpt-5.4-mini",
+  "recommend": "gpt-5.4-mini",
+  "query": "gpt-5.4-mini",
+  "video": "gpt-5.4",
+  "report": "gpt-5.4-mini"
+}';

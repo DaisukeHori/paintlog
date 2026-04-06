@@ -1,3 +1,4 @@
+import { getUserModelPrefs } from "@/lib/model-prefs";
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { recommendSettings } from '@/lib/ai';
@@ -12,8 +13,9 @@ export async function POST(req: NextRequest) {
     .select('air_pressure,throttle_turns,needle_turns,dilution_ratio,gun_distance,coat_count,film_thickness,fan_power,ambient_temp,ambient_humidity')
     .eq('user_id', user.id).eq('paint_type', paintType).eq('defects', '{}')
     .order('painted_at', { ascending: false }).limit(30);
+  const prefs = await getUserModelPrefs();
   try {
-    return NextResponse.json(await recommendSettings(paintType, conditions, logs || []));
+    return NextResponse.json(await recommendSettings(paintType, conditions, logs || [], prefs.recommend));
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

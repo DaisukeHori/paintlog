@@ -1,3 +1,4 @@
+import { getUserModelPrefs } from "@/lib/model-prefs";
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { assessRisk } from '@/lib/ai';
@@ -14,8 +15,9 @@ export async function POST(req: NextRequest) {
     conditions: { ambient_temp: l.ambient_temp, ambient_humidity: l.ambient_humidity, booth_temp: l.booth_temp },
     defects: l.defects || [],
   }));
+  const prefs = await getUserModelPrefs();
   try {
-    return NextResponse.json(await assessRisk(conditions, pastData));
+    return NextResponse.json(await assessRisk(conditions, pastData, prefs.risk));
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

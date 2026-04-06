@@ -1,3 +1,4 @@
+import { getUserModelPrefs } from "@/lib/model-prefs";
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { generateMonthlyReport } from '@/lib/ai';
@@ -12,8 +13,9 @@ export async function POST(req: NextRequest) {
   const { data: logs } = await supabase.from('paint_logs').select('*')
     .eq('user_id', user.id).gte('painted_at', startDate).lt('painted_at', endDate)
     .order('painted_at', { ascending: true });
+  const prefs = await getUserModelPrefs();
   try {
-    return NextResponse.json(await generateMonthlyReport(logs || [], `${year}年${month}月`));
+    return NextResponse.json(await generateMonthlyReport(logs || [], `${year}年${month}月`, prefs.report));
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

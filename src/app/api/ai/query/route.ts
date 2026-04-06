@@ -1,3 +1,4 @@
+import { getUserModelPrefs } from "@/lib/model-prefs";
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { queryData } from '@/lib/ai';
@@ -9,8 +10,9 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: '未認証' }, { status: 401 });
   const { question } = await req.json();
+  const prefs = await getUserModelPrefs();
   try {
-    const aiResult = await queryData(question, SCHEMA);
+    const aiResult = await queryData(question, SCHEMA, prefs.query);
     let query = supabase.from('paint_logs').select('*').eq('user_id', user.id);
     Object.entries(aiResult.filters || {}).forEach(([key, value]) => {
       if (key.endsWith('_gte')) query = query.gte(key.replace('_gte', ''), value);
