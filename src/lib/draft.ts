@@ -88,7 +88,7 @@ export async function createNewDraft(): Promise<Draft> {
     painted_at: new Date().toISOString(),
     ambient_temp: null, ambient_humidity: null, booth_temp: null,
     workpiece_temp: null, paint_temp: null,
-    paint_type: null, paint_product: null, dilution_ratio: null, paint_lot: null,
+    paint_type: null, paint_product: null, dilution_ratio: null, viscosity_seconds: null, paint_lot: null,
     air_pressure: null, throttle_turns: null, needle_turns: null,
     gun_type: null, gun_distance: null,
     coat_count: null, surface_prep: null, drying_method: null, drying_temp: null, drying_time: null,
@@ -105,7 +105,7 @@ export async function createNewDraft(): Promise<Draft> {
   // ピンされていない項目は前回値
   const lastValueFields = [
     'ambient_temp', 'ambient_humidity', 'booth_temp', 'workpiece_temp', 'paint_temp',
-    'paint_type', 'paint_product', 'dilution_ratio', 'paint_lot',
+    'paint_type', 'paint_product', 'dilution_ratio', 'viscosity_seconds', 'paint_lot',
     'air_pressure', 'throttle_turns', 'needle_turns', 'gun_type', 'gun_distance',
     'coat_count', 'surface_prep', 'drying_method', 'drying_temp', 'drying_time', 'film_thickness', 'fan_power',
   ];

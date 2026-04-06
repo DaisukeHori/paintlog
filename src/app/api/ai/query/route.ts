@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { queryData } from '@/lib/ai';
 
-const SCHEMA = `paint_logs: id,painted_at,ambient_temp,ambient_humidity,booth_temp,workpiece_temp,paint_temp,paint_type,paint_product,dilution_ratio,paint_lot,air_pressure,throttle_turns,needle_turns,gun_type,gun_distance,coat_count,surface_prep,drying_method,drying_time,film_thickness,fan_power,defects(jsonb: severity map),comment`;
+const SCHEMA = `paint_logs: id,painted_at,ambient_temp,ambient_humidity,booth_temp,workpiece_temp,paint_temp,paint_type,paint_product,dilution_ratio,viscosity_seconds,paint_lot,air_pressure,throttle_turns,needle_turns,gun_type,gun_distance,coat_count,surface_prep,drying_method,drying_temp,drying_time,film_thickness,fan_power,defects(jsonb: severity map),comment`;
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();

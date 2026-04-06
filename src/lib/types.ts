@@ -14,6 +14,7 @@ export interface PaintLog {
   paint_type: string | null;
   paint_product: string | null;
   dilution_ratio: number | null;
+  viscosity_seconds: number | null;
   paint_lot: string | null;
   // 3. ガン設定
   air_pressure: number | null;
