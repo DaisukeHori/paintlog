@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { PaintLog, turnsToDisplay } from '@/lib/types';
 import { format } from 'date-fns';
+import DraftBanner from '@/components/DraftBanner';
 
 export default function LogsPage() {
   const [logs, setLogs] = useState<PaintLog[]>([]);
@@ -53,6 +54,7 @@ export default function LogsPage() {
       </div>
 
       {/* リスト */}
+      <DraftBanner />
       <div className="px-4 pt-2 space-y-2">
         {loading && (
           <div className="text-center text-gray-400 py-12">読み込み中...</div>

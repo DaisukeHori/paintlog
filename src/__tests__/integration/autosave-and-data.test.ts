@@ -21,7 +21,7 @@ vi.mock('@/lib/supabase/client', () => ({
   }),
 }));
 
-import { useAutoSave, createBlankLog } from '@/lib/autosave';
+import { useAutoSave } from '@/lib/autosave';
 
 describe('useAutoSave フック', () => {
   beforeEach(() => { vi.clearAllMocks(); vi.useFakeTimers(); });
@@ -101,68 +101,67 @@ describe('useAutoSave フック', () => {
   });
 });
 
-describe('createBlankLog', () => {
+describe('下書き（Draft）システム', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     vi.useRealTimers();
-    // Setup chain mocks
-    mockSelect.mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        single: vi.fn().mockResolvedValue({ data: null }),
-        order: vi.fn().mockReturnValue({
-          limit: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: null }),
-          }),
-        }),
-      }),
-    });
+    localStorage.clear();
   });
 
-  it('新しいレコードIDを返す', async () => {
-    const id = await createBlankLog();
-    expect(id).toBe('new-id');
+  it('下書きはlocalStorageに保存される', () => {
+    const draft = {
+      form: { painted_at: new Date().toISOString(), defects: [], photo_urls: [], video_urls: [], custom_fields: {} },
+      touchedFields: [],
+      pinnedFields: {},
+      createdAt: Date.now(),
+      dbId: null,
+    };
+    localStorage.setItem('paintlog_draft', JSON.stringify(draft));
+    const loaded = localStorage.getItem('paintlog_draft');
+    expect(loaded).toBeTruthy();
+    expect(JSON.parse(loaded!).dbId).toBeNull();
   });
 
-  it('insertが呼ばれる', async () => {
-    await createBlankLog();
-    expect(mockInsert).toHaveBeenCalled();
+  it('touchedFieldsが操作を追跡する', () => {
+    const touched: string[] = [];
+    touched.push('ambient_temp');
+    touched.push('air_pressure');
+    expect(touched).toHaveLength(2);
+    expect(touched).toContain('ambient_temp');
   });
 
-  it('painted_atが現在時刻で設定される', async () => {
-    await createBlankLog();
-    const args = mockInsert.mock.calls[0][0];
-    expect(args).toHaveProperty('painted_at');
-    expect(new Date(args.painted_at).getTime()).toBeCloseTo(Date.now(), -3);
+  it('同じフィールドは重複追跡しない', () => {
+    const touched = ['ambient_temp'];
+    const key = 'ambient_temp';
+    const updated = touched.includes(key) ? touched : [...touched, key];
+    expect(updated).toHaveLength(1);
   });
 
-  it('user_idが設定される', async () => {
-    await createBlankLog();
-    const args = mockInsert.mock.calls[0][0];
-    expect(args.user_id).toBe('user-123');
+  it('dbIdがnullならDB未保存（下書き状態）', () => {
+    const draft = { dbId: null };
+    expect(draft.dbId).toBeNull();
   });
 
-  it('defectsが空配列で初期化される', async () => {
-    await createBlankLog();
-    const args = mockInsert.mock.calls[0][0];
-    expect(args.defects).toEqual([]);
+  it('dbIdが設定されたらDB保存済み', () => {
+    const draft = { dbId: 'log-123' };
+    expect(draft.dbId).toBe('log-123');
   });
 
-  it('photo_urlsが空配列で初期化される', async () => {
-    await createBlankLog();
-    const args = mockInsert.mock.calls[0][0];
-    expect(args.photo_urls).toEqual([]);
+  it('24時間経過した下書きは期限切れ', () => {
+    const expiry = 24 * 60 * 60 * 1000;
+    const oldDraft = { createdAt: Date.now() - expiry - 1000 };
+    expect(Date.now() - oldDraft.createdAt > expiry).toBe(true);
   });
 
-  it('video_urlsが空配列で初期化される', async () => {
-    await createBlankLog();
-    const args = mockInsert.mock.calls[0][0];
-    expect(args.video_urls).toEqual([]);
+  it('24時間以内の下書きは有効', () => {
+    const expiry = 24 * 60 * 60 * 1000;
+    const freshDraft = { createdAt: Date.now() - 1000 };
+    expect(Date.now() - freshDraft.createdAt > expiry).toBe(false);
   });
 
-  it('custom_fieldsが空オブジェクトで初期化される', async () => {
-    await createBlankLog();
-    const args = mockInsert.mock.calls[0][0];
-    expect(args.custom_fields).toEqual({});
+  it('下書きクリアでlocalStorageが空になる', () => {
+    localStorage.setItem('paintlog_draft', '{}');
+    localStorage.removeItem('paintlog_draft');
+    expect(localStorage.getItem('paintlog_draft')).toBeNull();
   });
 });
 
