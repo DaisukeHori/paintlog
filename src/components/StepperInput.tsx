@@ -19,6 +19,8 @@ interface StepperInputProps {
   barMax?: number;
   warningThreshold?: number;
   dangerThreshold?: number;
+  /** Custom color function: receives value, returns CSS color string */
+  colorFn?: (v: number) => string;
 }
 
 export default function StepperInput({
@@ -26,7 +28,7 @@ export default function StepperInput({
   step = 1, min = -20, max = 100, decimals = 0,
   presets, pinned, onPin,
   showBar, barColor = '#D35322', barMax,
-  warningThreshold, dangerThreshold,
+  warningThreshold, dangerThreshold, colorFn,
 }: StepperInputProps) {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sliderMax = barMax ?? max;
@@ -44,9 +46,17 @@ export default function StepperInput({
   const displayVal = value !== null && value !== undefined
     ? decimals > 0 ? value.toFixed(decimals) : String(value) : '--';
 
+  // Track color
   let trackColor = barColor;
-  if (dangerThreshold && value !== null && value > dangerThreshold) trackColor = '#C53030';
-  else if (warningThreshold && value !== null && value > warningThreshold) trackColor = '#B8860B';
+  if (value !== null) {
+    if (colorFn) {
+      trackColor = colorFn(value);
+    } else if (dangerThreshold && value > dangerThreshold) {
+      trackColor = '#C53030';
+    } else if (warningThreshold && value > warningThreshold) {
+      trackColor = '#B8860B';
+    }
+  }
 
   const pct = value !== null ? Math.max(0, Math.min(100, ((value - min) / (sliderMax - min)) * 100)) : 0;
 
@@ -67,7 +77,7 @@ export default function StepperInput({
         <button className="min-w-[44px] h-[44px] rounded-xl bg-stone-100 active:bg-stone-200 flex items-center justify-center text-xl select-none touch-manipulation font-medium"
           onPointerDown={() => startHold(-step)} onPointerUp={stopHold} onPointerLeave={stopHold}>−</button>
         <div className="flex-1 text-center">
-          <span className="text-2xl font-semibold tabular-nums">{displayVal}</span>
+          <span className="text-2xl font-semibold tabular-nums" style={colorFn && value !== null ? { color: trackColor } : undefined}>{displayVal}</span>
           <span className="text-xs text-stone-400 ml-1">{unit}</span>
         </div>
         <button className="min-w-[44px] h-[44px] rounded-xl bg-stone-100 active:bg-stone-200 flex items-center justify-center text-xl select-none touch-manipulation font-medium"

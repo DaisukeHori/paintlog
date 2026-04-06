@@ -307,7 +307,16 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
               <AutocompleteInput label="塗装種類" fieldName="paint_type" value={form.paint_type || ''} onChange={(v) => setTextAndSuggest('paint_type', 'paint_type', v)} suggestions={suggestions['paint_type'] || []} onDeleteSuggestion={(v) => deleteSuggestion('paint_type', v)} pinned={'paint_type' in pinnedFields} onPin={() => togglePin('paint_type')} />
               <AutocompleteInput label="塗料メーカー・品番" fieldName="paint_product" value={form.paint_product || ''} onChange={(v) => setTextAndSuggest('paint_product', 'paint_product', v)} suggestions={suggestions['paint_product'] || []} onDeleteSuggestion={(v) => deleteSuggestion('paint_product', v)} />
               <SliderInput label="希釈率" unit="%" value={form.dilution_ratio} onChange={(v) => set('dilution_ratio', v)} min={0} max={50} step={1} pinned={'dilution_ratio' in pinnedFields} onPin={() => togglePin('dilution_ratio')} />
-              <StepperInput label="粘度（滴下秒）" unit="秒" value={form.viscosity_seconds} onChange={(v) => set('viscosity_seconds', v)} step={1} min={5} max={60} presets={[13, 15, 20, 25]} warningThreshold={25} dangerThreshold={35} pinned={'viscosity_seconds' in pinnedFields} onPin={() => togglePin('viscosity_seconds')} />
+              <StepperInput label="粘度（滴下秒）" unit="秒" value={form.viscosity_seconds} onChange={(v) => set('viscosity_seconds', v)} step={1} min={5} max={40} presets={[13, 15, 20, 25]} pinned={'viscosity_seconds' in pinnedFields} onPin={() => togglePin('viscosity_seconds')}
+                colorFn={(v) => {
+                  if (v <= 10) return '#2563EB';      // 青: かなり低粘度
+                  if (v <= 15) return '#0D9488';      // ティール: 低粘度
+                  if (v <= 20) return '#16A34A';      // 緑: 適正域
+                  if (v <= 25) return '#B8860B';      // 黄: 中粘度
+                  if (v <= 30) return '#D35322';      // オレンジ: やや高い
+                  if (v <= 35) return '#C53030';      // 赤: 高粘度
+                  return '#7F1D1D';                    // 濃赤: 非常に硬い
+                }} />
               <AutocompleteInput label="ロット番号" fieldName="paint_lot" value={form.paint_lot || ''} onChange={(v) => setTextAndSuggest('paint_lot', 'paint_lot', v)} suggestions={suggestions['paint_lot'] || []} onDeleteSuggestion={(v) => deleteSuggestion('paint_lot', v)} placeholder="任意" />
             </>
           )},
