@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   const { data: logs } = await supabase
     .from('paint_logs')
     .select('air_pressure,throttle_turns,needle_turns,dilution_ratio,gun_distance,coat_count,film_thickness,fan_power,ambient_temp,ambient_humidity')
-    .eq('user_id', user.id).eq('paint_type', paintType).eq('defects', '{}')
+    .eq('user_id', user.id).eq('paint_type', paintType)
     .order('painted_at', { ascending: false }).limit(30);
   const prefs = await getUserModelPrefs();
   try {

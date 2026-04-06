@@ -109,7 +109,7 @@ describe('下書き（Draft）システム', () => {
 
   it('下書きはlocalStorageに保存される', () => {
     const draft = {
-      form: { painted_at: new Date().toISOString(), defects: [], photo_urls: [], video_urls: [], custom_fields: {} },
+      form: { painted_at: new Date().toISOString(), defects: {}, photo_urls: [], video_urls: [], custom_fields: {} },
       touchedFields: [],
       pinnedFields: {},
       createdAt: Date.now(),
@@ -465,10 +465,10 @@ describe('お気に入りプリフィル', () => {
 
 describe('分析データ計算', () => {
   const logs = [
-    { film_thickness: 30, defects: [] },
-    { film_thickness: 35, defects: ['タレ'] },
-    { film_thickness: 40, defects: [] },
-    { film_thickness: null, defects: ['ブツ', 'ハジキ'] },
+    { film_thickness: 30, defects: {} },
+    { film_thickness: 35, defects: { 'タレ': 1 } },
+    { film_thickness: 40, defects: {} },
+    { film_thickness: null, defects: { 'ブツ': 1, 'ハジキ': 1 } },
   ];
 
   it('平均膜厚を計算する', () => {
@@ -479,13 +479,13 @@ describe('分析データ計算', () => {
 
   it('不具合なし率を計算する', () => {
     const total = logs.length;
-    const defectFree = logs.filter((l) => l.defects.length === 0).length;
+    const defectFree = logs.filter((l) => Object.keys(l.defects || {}).length === 0).length;
     expect(Math.round((defectFree / total) * 100)).toBe(50);
   });
 
   it('不具合カウントを集計する', () => {
     const counts: Record<string, number> = {};
-    logs.forEach((l) => l.defects.forEach((d) => { counts[d] = (counts[d] || 0) + 1; }));
+    logs.forEach((l) => Object.entries(l.defects || {}).forEach(([d, sev]) => { counts[d] = (counts[d] || 0) + (sev as number); }));
     expect(counts['タレ']).toBe(1);
     expect(counts['ブツ']).toBe(1);
     expect(counts['ハジキ']).toBe(1);
@@ -501,14 +501,14 @@ describe('分析データ計算', () => {
   });
 
   it('全記録が不具合なしの場合100%', () => {
-    const clean = [{ defects: [] }, { defects: [] }];
-    const rate = clean.filter((l) => l.defects.length === 0).length / clean.length * 100;
+    const clean = [{ defects: {} }, { defects: {} }];
+    const rate = clean.filter((l) => Object.keys(l.defects || {}).length === 0).length / clean.length * 100;
     expect(rate).toBe(100);
   });
 
   it('全記録に不具合ありの場合0%', () => {
-    const dirty = [{ defects: ['タレ'] }, { defects: ['ブツ'] }];
-    const rate = dirty.filter((l) => l.defects.length === 0).length / dirty.length * 100;
+    const dirty = [{ defects: { 'タレ': 1 } }, { defects: { 'ブツ': 1 } }];
+    const rate = dirty.filter((l) => Object.keys(l.defects || {}).length === 0).length / dirty.length * 100;
     expect(rate).toBe(0);
   });
 

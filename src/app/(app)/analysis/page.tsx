@@ -24,12 +24,12 @@ export default function AnalysisPage() {
   // 統計データ
   const stats = useMemo(() => {
     if (logs.length === 0) return null;
-    const defectFree = logs.filter((l) => l.defects.length === 0).length;
+    const defectFree = logs.filter((l) => Object.keys(l.defects || {}).length === 0).length;
     const thicknesses = logs.filter((l) => l.film_thickness !== null).map((l) => l.film_thickness!);
     const avgThickness = thicknesses.length > 0 ? thicknesses.reduce((a, b) => a + b, 0) / thicknesses.length : 0;
     // 不具合タイプ集計
     const defectCounts: Record<string, number> = {};
-    logs.forEach((l) => l.defects.forEach((d) => { defectCounts[d] = (defectCounts[d] || 0) + 1; }));
+    logs.forEach((l) => Object.entries(l.defects || {}).forEach(([d, count]) => { defectCounts[d] = (defectCounts[d] || 0) + (count as number); }));
     // 週ごとの不具合率
     const weeklyMap: Record<string, { total: number; defects: number }> = {};
     logs.forEach((l) => {
@@ -38,7 +38,7 @@ export default function AnalysisPage() {
       const key = `${d.getMonth() + 1}/${Math.ceil(d.getDate() / 7)}w`;
       if (!weeklyMap[key]) weeklyMap[key] = { total: 0, defects: 0 };
       weeklyMap[key].total++;
-      if (l.defects.length > 0) weeklyMap[key].defects++;
+      if (Object.keys(l.defects || {}).length > 0) weeklyMap[key].defects++;
     });
     return { total: logs.length, defectFree, defectRate: Math.round((1 - defectFree / logs.length) * 100), avgThickness: Math.round(avgThickness), defectCounts, weeklyMap };
   }, [logs]);
@@ -69,8 +69,8 @@ export default function AnalysisPage() {
 
       // 2. 温度×湿度 散布図（不具合あり/なしで色分け）
       if (scatterRef.current) {
-        const ok = logs.filter((l) => l.ambient_temp !== null && l.ambient_humidity !== null && l.defects.length === 0);
-        const ng = logs.filter((l) => l.ambient_temp !== null && l.ambient_humidity !== null && l.defects.length > 0);
+        const ok = logs.filter((l) => l.ambient_temp !== null && l.ambient_humidity !== null && Object.keys(l.defects || {}).length === 0);
+        const ng = logs.filter((l) => l.ambient_temp !== null && l.ambient_humidity !== null && Object.keys(l.defects || {}).length > 0);
         charts.push(new Chart(scatterRef.current, {
           type: 'scatter',
           data: {

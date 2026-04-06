@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { loadDraft, clearDraft, Draft } from '@/lib/draft';
-import { format } from 'date-fns';
+import { formatLocalDate } from '@/lib/date-utils';
 
 export default function DraftBanner() {
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -15,7 +15,7 @@ export default function DraftBanner() {
         <div>
           <div className="text-xs font-semibold mb-0.5" style={{ color: 'var(--pl-warn)' }}>下書きがあります</div>
           <div className="text-[11px]" style={{ color: 'var(--pl-text-3)' }}>
-            {draft.form.paint_type || '種類未設定'} · {format(new Date(draft.createdAt), 'M/d HH:mm')}作成
+            {draft.form.paint_type || '種類未設定'} · {formatLocalDate(new Date(draft.createdAt).toISOString())}作成
           </div>
         </div>
         <div className="flex gap-2">

@@ -91,8 +91,8 @@ export async function createNewDraft(): Promise<Draft> {
     paint_type: null, paint_product: null, dilution_ratio: null, paint_lot: null,
     air_pressure: null, throttle_turns: null, needle_turns: null,
     gun_type: null, gun_distance: null,
-    coat_count: null, surface_prep: null, drying_method: null,
-    film_thickness: null, fan_power: null, defects: [],
+    coat_count: null, surface_prep: null, drying_method: null, drying_time: null,
+    film_thickness: null, fan_power: null, defects: {},
     photo_urls: [], video_urls: [], comment: null,
     custom_fields: {},
   };

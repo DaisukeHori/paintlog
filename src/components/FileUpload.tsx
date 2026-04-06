@@ -56,7 +56,7 @@ export default function FileUpload({
   };
 
   return (
-    <div>
+    <div className="bg-white rounded-xl p-3 border border-stone-200 shadow-sm">
       <span className="text-xs text-stone-500 mb-2 block">写真・動画</span>
       {/* プレビュー */}
       {(photos.length > 0 || videos.length > 0) && (

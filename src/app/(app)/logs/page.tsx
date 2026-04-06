@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { PaintLog, turnsToDisplay } from '@/lib/types';
-import { format } from 'date-fns';
+import { formatLocalDate } from '@/lib/date-utils';
 import DraftBanner from '@/components/DraftBanner';
 
 export default function LogsPage() {
@@ -84,27 +84,27 @@ export default function LogsPage() {
                     </div>
                   )}
                   {/* Defect badge */}
-                  {log.defects.length > 0 && (
+                  {Object.keys(log.defects || {}).length > 0 && (
                     <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style={{ background: 'var(--pl-danger)' }}>
-                      {log.defects[0]}{log.defects.length > 1 ? ` +${log.defects.length - 1}` : ''}
+                      {Object.entries(log.defects || {}).map(([k,v]) => `${k}×${v}`).join(' ')}
                     </div>
                   )}
                 </div>
                 {/* Info area */}
                 <div className="p-2.5">
-                  <div className="font-semibold text-xs truncate">{log.paint_type || '種類未設定'}</div>
-                  <div className="text-[10px] mt-0.5 truncate" style={{ color: 'var(--pl-text-2)' }}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="font-semibold text-xs truncate flex-1">{log.paint_type || '種類未設定'}</div>
+                    <div className="text-[10px] font-medium ml-1 flex-shrink-0" style={{ color: 'var(--pl-accent)' }}>
+                      {formatLocalDate(log.painted_at)}
+                    </div>
+                  </div>
+                  <div className="text-[10px] truncate" style={{ color: 'var(--pl-text-2)' }}>
                     {log.paint_product || ''}
                   </div>
-                  <div className="flex items-center justify-between mt-1.5">
-                    <div className="flex gap-1.5 text-[10px] font-medium" style={{ color: 'var(--pl-text-3)' }}>
-                      {log.ambient_temp !== null && <span style={{ color: 'var(--pl-blue)' }}>{log.ambient_temp}℃</span>}
-                      {log.air_pressure !== null && <span style={{ color: 'var(--pl-accent)' }}>{log.air_pressure}MPa</span>}
-                      {log.film_thickness !== null && <span>{log.film_thickness}μm</span>}
-                    </div>
-                    <div className="text-[9px]" style={{ color: 'var(--pl-text-3)' }}>
-                      {format(new Date(log.painted_at), 'M/d')}
-                    </div>
+                  <div className="flex items-center gap-1.5 mt-1.5 text-[10px] font-medium" style={{ color: 'var(--pl-text-3)' }}>
+                    {log.ambient_temp !== null && <span style={{ color: 'var(--pl-blue)' }}>{log.ambient_temp}℃</span>}
+                    {log.air_pressure !== null && <span style={{ color: 'var(--pl-accent)' }}>{log.air_pressure}MPa</span>}
+                    {log.film_thickness !== null && <span>{log.film_thickness}μm</span>}
                   </div>
                 </div>
               </button>
@@ -130,7 +130,7 @@ export default function LogsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-0.5">
                       <div className="font-semibold text-sm truncate">{log.paint_type || '種類未設定'}</div>
-                      <div className="text-[10px] flex-shrink-0 ml-2" style={{ color: 'var(--pl-text-3)' }}>{format(new Date(log.painted_at), 'M/d HH:mm')}</div>
+                      <div className="text-[10px] flex-shrink-0 ml-2" style={{ color: 'var(--pl-text-3)' }}>{formatLocalDate(log.painted_at)}</div>
                     </div>
                     {log.paint_product && <div className="text-xs truncate" style={{ color: 'var(--pl-text-2)' }}>{log.paint_product}</div>}
                     <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] font-medium mt-1" style={{ color: 'var(--pl-text-3)' }}>
@@ -140,9 +140,9 @@ export default function LogsPage() {
                       {log.film_thickness !== null && <span>{log.film_thickness}μm</span>}
                       {log.coat_count !== null && <span>{log.coat_count}コート</span>}
                     </div>
-                    {log.defects.length > 0 && (
+                    {Object.keys(log.defects || {}).length > 0 && (
                       <div className="flex gap-1 mt-1">
-                        {log.defects.map((d) => <span key={d} className="pl-badge" style={{ background: 'var(--pl-danger-soft)', color: 'var(--pl-danger)', fontSize: '10px' }}>{d}</span>)}
+                        {Object.entries(log.defects || {}).map(([d, sev]) => <span key={d} className="pl-badge" style={{ background: 'var(--pl-danger-soft)', color: 'var(--pl-danger)', fontSize: '10px' }}>{d}×{sev as number}</span>)}
                       </div>
                     )}
                   </div>

@@ -125,3 +125,8 @@ alter table public.user_defaults add column if not exists model_preferences json
   "video": "gpt-5.4",
   "report": "gpt-5.4-mini"
 }';
+
+-- defects: text[] → jsonb (severity map: {"タレ": 3, "ブツ": 1})
+-- Run: ALTER TABLE paint_logs DROP COLUMN defects; ALTER TABLE paint_logs ADD COLUMN defects jsonb DEFAULT '{}'::jsonb;
+-- Add drying_time
+ALTER TABLE public.paint_logs ADD COLUMN IF NOT EXISTS drying_time text;

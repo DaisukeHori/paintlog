@@ -2,44 +2,58 @@
 
 import { DEFECT_OPTIONS } from '@/lib/types';
 
-// 不具合トグルチップ
+// 不具合 — タップで重症度 ×1→×2→×3→×4→×5→0
 interface DefectChipsProps {
-  value: string[];
-  onChange: (v: string[]) => void;
+  value: Record<string, number>;
+  onChange: (v: Record<string, number>) => void;
 }
 
+const SEVERITY_COLORS = [
+  '', // 0 unused
+  'bg-amber-50 border-amber-300 text-amber-700',     // ×1 軽微
+  'bg-orange-50 border-orange-300 text-orange-700',   // ×2
+  'bg-red-50 border-red-300 text-red-700',            // ×3
+  'bg-red-100 border-red-400 text-red-800',           // ×4
+  'bg-red-200 border-red-500 text-red-900 font-bold', // ×5 最悪
+];
+
 export function DefectChips({ value, onChange }: DefectChipsProps) {
-  const toggle = (d: string) => {
-    if (value.includes(d)) {
-      onChange(value.filter((v) => v !== d));
-    } else {
-      onChange([...value, d]);
-    }
+  const cycle = (d: string) => {
+    const current = value[d] || 0;
+    const next = current >= 5 ? 0 : current + 1;
+    const updated = { ...value };
+    if (next === 0) { delete updated[d]; } else { updated[d] = next; }
+    onChange(updated);
   };
 
+  const totalCount = Object.values(value).reduce((a, b) => a + b, 0);
+
   return (
-    <div>
-      <span className="text-xs text-stone-500 mb-1 block">不具合（タップで選択）</span>
+    <div className="bg-white rounded-xl p-3 border border-stone-200 shadow-sm">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs text-stone-500">不具合（タップで重症度UP）</span>
+        {totalCount > 0 && (
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-bold">
+            計{totalCount}
+          </span>
+        )}
+      </div>
       <div className="flex flex-wrap gap-2">
         {DEFECT_OPTIONS.map((d) => {
-          const on = value.includes(d);
+          const severity = value[d] || 0;
           return (
-            <button
-              key={d}
-              onClick={() => toggle(d)}
-              className={`px-4 py-2.5 rounded-full text-sm touch-manipulation border ${
-                on
-                  ? 'bg-red-50 border-red-300 text-red-700'
-                  : 'bg-white border-stone-200 text-stone-500'
-              }`}
-            >
+            <button key={d} onClick={() => cycle(d)}
+              className={`px-3 py-2.5 rounded-full text-sm touch-manipulation border min-h-[44px] transition-all ${
+                severity > 0 ? SEVERITY_COLORS[severity] : 'bg-white border-stone-200 text-stone-400'
+              }`}>
               {d}
+              {severity > 0 && <span className="ml-1 font-bold">×{severity}</span>}
             </button>
           );
         })}
       </div>
-      <div className="text-[11px] text-stone-400 mt-1">
-        選択なし = 不具合なし
+      <div className="text-[10px] text-stone-400 mt-1.5">
+        {totalCount === 0 ? '選択なし = 不具合なし' : 'タップで×1→×5、もう一回で解除'}
       </div>
     </div>
   );
@@ -56,7 +70,7 @@ interface CoatSelectorProps {
 export function CoatSelector({ value, onChange, pinned, onPin }: CoatSelectorProps) {
   const options = [1, 2, 3, 4, 5, 6];
   return (
-    <div>
+    <div className="bg-white rounded-xl p-3 border border-stone-200 shadow-sm">
       <div className="flex items-center gap-1 mb-1">
         <span className="text-xs text-stone-500">コート数</span>
         {pinned !== undefined && (
@@ -115,7 +129,7 @@ export function SliderInput({
 }: SliderInputProps) {
   const current = value ?? min;
   return (
-    <div>
+    <div className="bg-white rounded-xl p-3 border border-stone-200 shadow-sm">
       <div className="flex items-center gap-1 mb-1">
         <span className="text-xs text-stone-500">{label}</span>
         {pinned !== undefined && (

@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { PaintLog, PaintLogInput } from '@/lib/types';
 import { useAutoSave } from '@/lib/autosave';
 import { Draft, saveDraft, clearDraft, promoteDraftToDb } from '@/lib/draft';
+import { toLocalDatetimeValue, fromLocalDatetimeValue } from '@/lib/date-utils';
 import SaveStatusBar from '@/components/SaveStatusBar';
 import PinnedBanner from '@/components/PinnedBanner';
 import FavoritesBar from '@/components/FavoritesBar';
@@ -22,7 +23,7 @@ const FIELD_LABELS: Record<string, string> = {
   paint_product: '塗料品番', dilution_ratio: '希釈率', air_pressure: 'エア圧',
   throttle_turns: '絞り', needle_turns: 'ニードル', gun_type: 'ガン種類',
   gun_distance: 'ガン距離', coat_count: 'コート数', film_thickness: '膜厚',
-  fan_power: 'ファン出力', surface_prep: '下地処理', drying_method: '乾燥方法',
+  fan_power: 'ファン出力', surface_prep: '下地処理', drying_method: '乾燥方法', drying_time: '乾燥時間',
 };
 
 interface LogEditorProps {
@@ -274,13 +275,13 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
         {[
           { id: 1, label: '環境条件', border: 'border-blue-200', content: (
             <>
-              <div>
+              <div className="bg-white rounded-xl p-3 border border-stone-200 shadow-sm">
                 <span className="text-xs text-stone-500 mb-1 block">塗装日時</span>
                 <div className="flex gap-2">
                   <button onClick={() => set('painted_at', new Date().toISOString())}
                     className="px-4 py-2.5 bg-blue-50 text-blue-600 rounded-xl text-sm font-medium touch-manipulation border border-blue-200 min-h-[44px]">現在時刻</button>
-                  <input type="datetime-local" value={form.painted_at?.slice(0, 16) || ''}
-                    onChange={(e) => set('painted_at', new Date(e.target.value).toISOString())}
+                  <input type="datetime-local" value={toLocalDatetimeValue(form.painted_at)}
+                    onChange={(e) => set('painted_at', fromLocalDatetimeValue(e.target.value))}
                     className="flex-1 h-[44px] px-3 rounded-xl border border-stone-200 text-sm touch-manipulation" />
                 </div>
               </div>
@@ -327,7 +328,8 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
             <>
               <CoatSelector value={form.coat_count} onChange={(v) => set('coat_count', v)} pinned={'coat_count' in pinnedFields} onPin={() => togglePin('coat_count')} />
               <AutocompleteInput label="下地処理" fieldName="surface_prep" value={form.surface_prep || ''} onChange={(v) => setTextAndSuggest('surface_prep', 'surface_prep', v)} suggestions={suggestions['surface_prep'] || []} onDeleteSuggestion={(v) => deleteSuggestion('surface_prep', v)} />
-              <AutocompleteInput label="乾燥方法・時間" fieldName="drying_method" value={form.drying_method || ''} onChange={(v) => setTextAndSuggest('drying_method', 'drying_method', v)} suggestions={suggestions['drying_method'] || []} onDeleteSuggestion={(v) => deleteSuggestion('drying_method', v)} />
+              <AutocompleteInput label="乾燥方法" fieldName="drying_method" value={form.drying_method || ''} onChange={(v) => setTextAndSuggest('drying_method', 'drying_method', v)} suggestions={suggestions['drying_method'] || []} onDeleteSuggestion={(v) => deleteSuggestion('drying_method', v)} placeholder="自然乾燥・強制乾燥・赤外線..." />
+              <AutocompleteInput label="乾燥時間" fieldName="drying_time" value={form.drying_time || ''} onChange={(v) => setTextAndSuggest('drying_time', 'drying_time', v)} suggestions={suggestions['drying_time'] || []} onDeleteSuggestion={(v) => deleteSuggestion('drying_time', v)} placeholder="10分・60℃×30分..." />
               <StepperInput label="膜厚" unit="μm" value={form.film_thickness} onChange={(v) => set('film_thickness', v)} step={1} min={0} max={200} presets={[15, 25, 35, 50, 80]} pinned={'film_thickness' in pinnedFields} onPin={() => togglePin('film_thickness')} />
               <SliderInput label="ファン出力" unit="%" value={form.fan_power} onChange={(v) => set('fan_power', v)} min={0} max={100} step={5} pinned={'fan_power' in pinnedFields} onPin={() => togglePin('fan_power')} />
               <DefectChips value={form.defects} onChange={(v) => set('defects', v)} />
@@ -346,7 +348,7 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
               {form.video_urls.length > 0 && (
                 <VideoAnalysis frameUrls={form.video_urls} />
               )}
-              <div>
+              <div className="bg-white rounded-xl p-3 border border-stone-200 shadow-sm">
                 <span className="text-xs text-stone-500 mb-1 block">コメント</span>
                 <textarea value={form.comment || ''} onChange={(e) => set('comment', e.target.value)} placeholder="気づき・メモ・反省点" rows={3}
                   className="w-full px-4 py-3 rounded-xl border border-stone-200 text-sm touch-manipulation focus:outline-none focus:border-orange-600 resize-none" />
@@ -363,7 +365,7 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
               </div>
               <span className="text-stone-400 text-xs">{openCat === cat.id ? '▲' : '▼'}</span>
             </button>
-            {openCat === cat.id && <div className="px-3 pb-4 space-y-4">{cat.content}</div>}
+            {openCat === cat.id && <div className="mx-2 mb-3 p-3 rounded-xl space-y-3" style={{ background: '#EAE7DE' }}>{cat.content}</div>}
           </div>
         ))}
 

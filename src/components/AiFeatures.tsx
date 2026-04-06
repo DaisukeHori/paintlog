@@ -183,7 +183,7 @@ export function AiChat() {
             <div key={r.id} className="p-2 bg-stone-50 rounded-lg">
               <span className="font-medium">{r.paint_type || '種類未設定'}</span>
               <span className="text-stone-400 ml-2">{new Date(r.painted_at).toLocaleDateString('ja-JP')}</span>
-              {r.defects?.length > 0 && <span className="ml-2 text-red-600">{r.defects.join(', ')}</span>}
+              {Object.keys(r.defects || {}).length > 0 && <span className="ml-2 text-red-600">{Object.entries(r.defects || {}).map(([k,v]) => `${k}×${v}`).join(', ')}</span>}
             </div>
           ))}
         </div>

@@ -44,7 +44,7 @@ export default function AutocompleteInput({
   }, []);
 
   return (
-    <div ref={wrapRef}>
+    <div ref={wrapRef} className="bg-white rounded-xl p-3 border border-stone-200 shadow-sm">
       <div className="flex items-center gap-1 mb-1">
         <span className="text-xs text-stone-500">{label}</span>
         {pinned !== undefined && (
