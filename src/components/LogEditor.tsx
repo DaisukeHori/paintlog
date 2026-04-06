@@ -14,6 +14,7 @@ import TurnsInput from '@/components/TurnsInput';
 import AutocompleteInput from '@/components/AutocompleteInput';
 import { DefectChips, CoatSelector, SliderInput } from '@/components/FormControls';
 import FileUpload from '@/components/FileUpload';
+import { RiskAlert, AiRecommend, PhotoAnalysis, VideoAnalysis } from '@/components/AiFeatures';
 
 const FIELD_LABELS: Record<string, string> = {
   ambient_temp: '気温', ambient_humidity: '湿度', booth_temp: 'ブース気温',
@@ -253,6 +254,21 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
       {/* お気に入りバー */}
       <FavoritesBar recentLogs={recentLogs} onSelect={prefillFromLog} />
 
+      {/* AI最適設定ボタン */}
+      {form.paint_type && (
+        <div className="px-4 mb-2">
+          <AiRecommend
+            paintType={form.paint_type}
+            conditions={{ ambient_temp: form.ambient_temp, ambient_humidity: form.ambient_humidity }}
+            onApply={(settings) => {
+              Object.entries(settings).forEach(([k, v]) => {
+                set(k as keyof PaintLogInput, v as any);
+              });
+            }}
+          />
+        </div>
+      )}
+
       {/* カテゴリカード群 */}
       <div className="px-4 space-y-2 pb-8">
         {[
@@ -282,6 +298,10 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
               <div className="w-1/2">
                 <StepperInput label="塗料温度" unit="℃" value={form.paint_temp} onChange={(v) => set('paint_temp', v)} min={-10} max={50} pinned={'paint_temp' in pinnedFields} onPin={() => togglePin('paint_temp')} />
               </div>
+              <RiskAlert conditions={{
+                ambient_temp: form.ambient_temp, ambient_humidity: form.ambient_humidity,
+                booth_temp: form.booth_temp, workpiece_temp: form.workpiece_temp, paint_temp: form.paint_temp,
+              }} />
             </>
           )},
           { id: 2, label: '塗料情報', border: 'border-purple-200', content: (
@@ -316,6 +336,16 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
           { id: 5, label: '記録・エビデンス', border: 'border-orange-200', content: (
             <>
               <FileUpload photos={form.photo_urls} videos={form.video_urls} onPhotosChange={(v) => set('photo_urls', v)} onVideosChange={(v) => set('video_urls', v)} />
+              {form.photo_urls.length > 0 && (
+                <div className="space-y-1">
+                  {form.photo_urls.map((url, i) => (
+                    <PhotoAnalysis key={i} photoUrl={url} />
+                  ))}
+                </div>
+              )}
+              {form.video_urls.length > 0 && (
+                <VideoAnalysis frameUrls={form.video_urls} />
+              )}
               <div>
                 <span className="text-xs text-gray-500 mb-1 block">コメント</span>
                 <textarea value={form.comment || ''} onChange={(e) => set('comment', e.target.value)} placeholder="気づき・メモ・反省点" rows={3}

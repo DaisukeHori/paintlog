@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { PaintLog } from '@/lib/types';
+import { AiChat, MonthlyReport } from '@/components/AiFeatures';
 
 export default function AnalysisPage() {
   const [logs, setLogs] = useState<PaintLog[]>([]);
@@ -132,6 +133,10 @@ export default function AnalysisPage() {
               <div className="text-[10px] text-gray-500">平均膜厚μm</div>
             </div>
           </div>
+
+          {/* AI機能 */}
+          <AiChat />
+          <MonthlyReport />
 
           {/* チャート1 */}
           <div className="bg-white rounded-xl border border-gray-200 p-4">
