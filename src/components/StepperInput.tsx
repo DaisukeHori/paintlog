@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 
 interface StepperInputProps {
   label: string;
@@ -22,127 +22,84 @@ interface StepperInputProps {
 }
 
 export default function StepperInput({
-  label,
-  unit,
-  value,
-  onChange,
-  step = 1,
-  min = -20,
-  max = 100,
-  decimals = 0,
-  presets,
-  pinned,
-  onPin,
-  showBar,
-  barColor = '#378ADD',
-  barMax = 100,
-  warningThreshold,
-  dangerThreshold,
+  label, unit, value, onChange,
+  step = 1, min = -20, max = 100, decimals = 0,
+  presets, pinned, onPin,
+  showBar, barColor = '#D35322', barMax,
+  warningThreshold, dangerThreshold,
 }: StepperInputProps) {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sliderMax = barMax ?? max;
 
-  const adjust = useCallback(
-    (d: number) => {
-      const current = value ?? 0;
-      const next = Math.round((current + d) * 1000) / 1000;
-      if (next >= min && next <= max) onChange(next);
-    },
-    [value, min, max, onChange]
-  );
+  const adjust = useCallback((d: number) => {
+    const current = value ?? 0;
+    const next = Math.round((current + d) * 1000) / 1000;
+    if (next >= min && next <= max) onChange(next);
+  }, [value, min, max, onChange]);
 
-  const startHold = (d: number) => {
-    adjust(d);
-    intervalRef.current = setInterval(() => adjust(d), 150);
-  };
+  const startHold = (d: number) => { adjust(d); intervalRef.current = setInterval(() => adjust(d), 150); };
+  const stopHold = () => { if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; } };
+  useEffect(() => () => stopHold(), []);
 
-  const stopHold = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  };
+  const displayVal = value !== null && value !== undefined
+    ? decimals > 0 ? value.toFixed(decimals) : String(value) : '--';
 
-  useEffect(() => {
-    return () => stopHold();
-  }, []);
+  let trackColor = barColor;
+  if (dangerThreshold && value !== null && value > dangerThreshold) trackColor = '#C53030';
+  else if (warningThreshold && value !== null && value > warningThreshold) trackColor = '#B8860B';
 
-  const displayVal =
-    value !== null && value !== undefined
-      ? decimals > 0
-        ? value.toFixed(decimals)
-        : String(value)
-      : '--';
-
-  let currentBarColor = barColor;
-  if (dangerThreshold && value !== null && value > dangerThreshold) {
-    currentBarColor = '#E24B4A';
-  } else if (warningThreshold && value !== null && value > warningThreshold) {
-    currentBarColor = '#EF9F27';
-  }
+  const pct = value !== null ? Math.max(0, Math.min(100, ((value - min) / (sliderMax - min)) * 100)) : 0;
 
   return (
     <div className="bg-white rounded-xl p-3 border border-stone-200 shadow-sm">
-      <div className="flex items-center gap-1 mb-1">
-        <span className="text-xs text-stone-500">{label}</span>
+      <div className="flex items-center gap-1 mb-1.5">
+        <span className="text-xs text-stone-500 font-medium">{label}</span>
         {pinned !== undefined && (
-          <button
-            onClick={onPin}
-            className={`ml-auto w-7 h-7 rounded-full flex items-center justify-center text-xs ${
-              pinned
-                ? 'bg-purple-100 text-purple-600'
-                : 'text-stone-400 hover:bg-stone-100'
-            }`}
-            title={pinned ? 'デフォルト設定済み' : 'デフォルトに設定'}
-          >
+          <button onClick={onPin}
+            className={`ml-auto w-7 h-7 rounded-full flex items-center justify-center text-xs ${pinned ? 'bg-purple-100 text-purple-600' : 'text-stone-400'}`}>
             📌
           </button>
         )}
       </div>
+
+      {/* Stepper */}
       <div className="flex items-center gap-2">
-        <button
-          className="min-w-[48px] h-[48px] rounded-xl bg-stone-100 active:bg-gray-200 flex items-center justify-center text-2xl select-none touch-manipulation"
-          onPointerDown={() => startHold(-step)}
-          onPointerUp={stopHold}
-          onPointerLeave={stopHold}
-        >
-          −
-        </button>
+        <button className="min-w-[44px] h-[44px] rounded-xl bg-stone-100 active:bg-stone-200 flex items-center justify-center text-xl select-none touch-manipulation font-medium"
+          onPointerDown={() => startHold(-step)} onPointerUp={stopHold} onPointerLeave={stopHold}>−</button>
         <div className="flex-1 text-center">
-          <span className="text-2xl font-medium tabular-nums">{displayVal}</span>
+          <span className="text-2xl font-semibold tabular-nums">{displayVal}</span>
           <span className="text-xs text-stone-400 ml-1">{unit}</span>
         </div>
-        <button
-          className="min-w-[48px] h-[48px] rounded-xl bg-stone-100 active:bg-gray-200 flex items-center justify-center text-2xl select-none touch-manipulation"
-          onPointerDown={() => startHold(step)}
-          onPointerUp={stopHold}
-          onPointerLeave={stopHold}
-        >
-          +
-        </button>
+        <button className="min-w-[44px] h-[44px] rounded-xl bg-stone-100 active:bg-stone-200 flex items-center justify-center text-xl select-none touch-manipulation font-medium"
+          onPointerDown={() => startHold(step)} onPointerUp={stopHold} onPointerLeave={stopHold}>+</button>
       </div>
-      {showBar && value !== null && (
-        <div className="mt-2 h-2 bg-stone-100 rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-200"
-            style={{
-              width: `${Math.max(0, Math.min(100, (value / barMax) * 100))}%`,
-              backgroundColor: currentBarColor,
-            }}
-          />
+
+      {/* Slider track */}
+      <div className="mt-2 relative h-6 flex items-center">
+        <div className="absolute inset-x-0 h-2 bg-stone-100 rounded-full overflow-hidden">
+          <div className="h-full rounded-full transition-all duration-100" style={{ width: `${pct}%`, backgroundColor: trackColor }} />
         </div>
-      )}
+        <input type="range" min={min} max={sliderMax} step={step}
+          value={value ?? min}
+          onChange={(e) => {
+            const v = Number(e.target.value);
+            onChange(decimals > 0 ? Math.round(v * Math.pow(10, decimals)) / Math.pow(10, decimals) : v);
+          }}
+          className="absolute inset-0 w-full opacity-0 cursor-pointer touch-manipulation" style={{ height: '24px', margin: 0 }} />
+        <div className="absolute -bottom-0.5 inset-x-0 flex justify-between text-[9px] text-stone-300 px-0.5">
+          <span>{decimals > 0 ? min.toFixed(decimals) : min}</span>
+          <span>{decimals > 0 ? sliderMax.toFixed(decimals) : sliderMax}</span>
+        </div>
+      </div>
+
+      {/* Presets */}
       {presets && (
-        <div className="flex gap-1.5 mt-2 flex-wrap">
+        <div className="flex gap-1.5 mt-3 flex-wrap">
           {presets.map((p) => (
-            <button
-              key={p}
-              onClick={() => onChange(p)}
+            <button key={p} onClick={() => onChange(p)}
               className={`px-3 py-1.5 rounded-lg text-xs touch-manipulation ${
-                value === p
-                  ? 'bg-blue-100 text-blue-600 border border-blue-300'
-                  : 'bg-stone-50 text-stone-500 border border-stone-200'
-              }`}
-            >
+                value === p ? 'bg-orange-100 text-orange-700 border border-orange-300' : 'bg-stone-50 text-stone-500 border border-stone-200'
+              }`}>
               {decimals > 0 ? p.toFixed(decimals) : p}
             </button>
           ))}

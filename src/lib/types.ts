@@ -25,7 +25,8 @@ export interface PaintLog {
   coat_count: number | null;
   surface_prep: string | null;
   drying_method: string | null;
-  drying_time: string | null;
+  drying_temp: number | null;
+  drying_time: number | null;
   film_thickness: number | null;
   fan_power: number | null;
   defects: Record<string, number>; // {"タレ": 3, "ブツ": 1} = severity 1-5

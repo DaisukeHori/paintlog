@@ -7,7 +7,6 @@ import { PaintLog, PaintLogInput } from '@/lib/types';
 import { useAutoSave } from '@/lib/autosave';
 import { Draft, saveDraft, clearDraft, promoteDraftToDb } from '@/lib/draft';
 import { toLocalDatetimeValue, fromLocalDatetimeValue } from '@/lib/date-utils';
-import SaveStatusBar from '@/components/SaveStatusBar';
 import PinnedBanner from '@/components/PinnedBanner';
 import FavoritesBar from '@/components/FavoritesBar';
 import StepperInput from '@/components/StepperInput';
@@ -23,7 +22,7 @@ const FIELD_LABELS: Record<string, string> = {
   paint_product: '塗料品番', dilution_ratio: '希釈率', air_pressure: 'エア圧',
   throttle_turns: '絞り', needle_turns: 'ニードル', gun_type: 'ガン種類',
   gun_distance: 'ガン距離', coat_count: 'コート数', film_thickness: '膜厚',
-  fan_power: 'ファン出力', surface_prep: '下地処理', drying_method: '乾燥方法', drying_time: '乾燥時間',
+  fan_power: 'ファン出力', surface_prep: '下地処理', drying_method: '乾燥方法', drying_temp: '乾燥温度', drying_time: '乾燥時間',
 };
 
 interface LogEditorProps {
@@ -48,8 +47,7 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
   const supabase = createClient();
   const { save: dbSave, status: dbStatus } = useAutoSave(dbId);
 
-  // 保存ステータス: 下書きモードなら常にidle表示
-  const saveStatus = dbId ? dbStatus : 'idle';
+  // 保存ステータス: 常に自動保存（UI非表示）
 
   useEffect(() => {
     if (initialDraft) {
@@ -222,7 +220,6 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
 
   return (
     <div>
-      <SaveStatusBar status={saveStatus} />
 
       {/* ヘッダー */}
       <div className="sticky top-0 z-10 px-4 pt-[env(safe-area-inset-top)]" style={{ background: 'rgba(246,245,241,0.92)', backdropFilter: 'blur(20px)' }}>
@@ -236,7 +233,7 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
               {form.paint_type || '新規記録'}
             </div>
             <div className="text-[10px]" style={{ color: 'var(--pl-text-3)' }}>
-              {isDraft ? '操作開始で自動保存' : saveStatus === 'saving' ? '保存中...' : saveStatus === 'saved' ? '✓ 保存済み' : '自動保存'}
+              {isDraft ? '操作開始で自動保存' : '自動保存'}
             </div>
           </div>
           {dbId ? (
@@ -309,7 +306,7 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
             <>
               <AutocompleteInput label="塗装種類" fieldName="paint_type" value={form.paint_type || ''} onChange={(v) => setTextAndSuggest('paint_type', 'paint_type', v)} suggestions={suggestions['paint_type'] || []} onDeleteSuggestion={(v) => deleteSuggestion('paint_type', v)} pinned={'paint_type' in pinnedFields} onPin={() => togglePin('paint_type')} />
               <AutocompleteInput label="塗料メーカー・品番" fieldName="paint_product" value={form.paint_product || ''} onChange={(v) => setTextAndSuggest('paint_product', 'paint_product', v)} suggestions={suggestions['paint_product'] || []} onDeleteSuggestion={(v) => deleteSuggestion('paint_product', v)} />
-              <SliderInput label="希釈率" unit="%" value={form.dilution_ratio} onChange={(v) => set('dilution_ratio', v)} min={0} max={100} step={5} pinned={'dilution_ratio' in pinnedFields} onPin={() => togglePin('dilution_ratio')} />
+              <SliderInput label="希釈率" unit="%" value={form.dilution_ratio} onChange={(v) => set('dilution_ratio', v)} min={0} max={50} step={1} pinned={'dilution_ratio' in pinnedFields} onPin={() => togglePin('dilution_ratio')} />
               <AutocompleteInput label="ロット番号" fieldName="paint_lot" value={form.paint_lot || ''} onChange={(v) => setTextAndSuggest('paint_lot', 'paint_lot', v)} suggestions={suggestions['paint_lot'] || []} onDeleteSuggestion={(v) => deleteSuggestion('paint_lot', v)} placeholder="任意" />
             </>
           )},
@@ -329,7 +326,10 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
               <CoatSelector value={form.coat_count} onChange={(v) => set('coat_count', v)} pinned={'coat_count' in pinnedFields} onPin={() => togglePin('coat_count')} />
               <AutocompleteInput label="下地処理" fieldName="surface_prep" value={form.surface_prep || ''} onChange={(v) => setTextAndSuggest('surface_prep', 'surface_prep', v)} suggestions={suggestions['surface_prep'] || []} onDeleteSuggestion={(v) => deleteSuggestion('surface_prep', v)} />
               <AutocompleteInput label="乾燥方法" fieldName="drying_method" value={form.drying_method || ''} onChange={(v) => setTextAndSuggest('drying_method', 'drying_method', v)} suggestions={suggestions['drying_method'] || []} onDeleteSuggestion={(v) => deleteSuggestion('drying_method', v)} placeholder="自然乾燥・強制乾燥・赤外線..." />
-              <AutocompleteInput label="乾燥時間" fieldName="drying_time" value={form.drying_time || ''} onChange={(v) => setTextAndSuggest('drying_time', 'drying_time', v)} suggestions={suggestions['drying_time'] || []} onDeleteSuggestion={(v) => deleteSuggestion('drying_time', v)} placeholder="10分・60℃×30分..." />
+              <div className="grid grid-cols-2 gap-3">
+                <StepperInput label="乾燥温度" unit="℃" value={form.drying_temp} onChange={(v) => set('drying_temp', v)} step={5} min={20} max={200} presets={[60, 80, 120, 140]} pinned={'drying_temp' in pinnedFields} onPin={() => togglePin('drying_temp')} />
+                <StepperInput label="乾燥時間" unit="分" value={form.drying_time} onChange={(v) => set('drying_time', v)} step={5} min={0} max={120} presets={[10, 20, 30, 60]} pinned={'drying_time' in pinnedFields} onPin={() => togglePin('drying_time')} />
+              </div>
               <StepperInput label="膜厚" unit="μm" value={form.film_thickness} onChange={(v) => set('film_thickness', v)} step={1} min={0} max={200} presets={[15, 25, 35, 50, 80]} pinned={'film_thickness' in pinnedFields} onPin={() => togglePin('film_thickness')} />
               <SliderInput label="ファン出力" unit="%" value={form.fan_power} onChange={(v) => set('fan_power', v)} min={0} max={100} step={5} pinned={'fan_power' in pinnedFields} onPin={() => togglePin('fan_power')} />
               <DefectChips value={form.defects} onChange={(v) => set('defects', v)} />

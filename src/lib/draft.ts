@@ -91,7 +91,7 @@ export async function createNewDraft(): Promise<Draft> {
     paint_type: null, paint_product: null, dilution_ratio: null, paint_lot: null,
     air_pressure: null, throttle_turns: null, needle_turns: null,
     gun_type: null, gun_distance: null,
-    coat_count: null, surface_prep: null, drying_method: null, drying_time: null,
+    coat_count: null, surface_prep: null, drying_method: null, drying_temp: null, drying_time: null,
     film_thickness: null, fan_power: null, defects: {},
     photo_urls: [], video_urls: [], comment: null,
     custom_fields: {},
@@ -107,7 +107,7 @@ export async function createNewDraft(): Promise<Draft> {
     'ambient_temp', 'ambient_humidity', 'booth_temp', 'workpiece_temp', 'paint_temp',
     'paint_type', 'paint_product', 'dilution_ratio', 'paint_lot',
     'air_pressure', 'throttle_turns', 'needle_turns', 'gun_type', 'gun_distance',
-    'coat_count', 'surface_prep', 'drying_method', 'film_thickness', 'fan_power',
+    'coat_count', 'surface_prep', 'drying_method', 'drying_temp', 'drying_time', 'film_thickness', 'fan_power',
   ];
   if (lastLog && useLastValue) {
     lastValueFields.forEach((k) => {

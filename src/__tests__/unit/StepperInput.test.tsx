@@ -91,18 +91,18 @@ describe('StepperInput', () => {
 
   it('ピンアイコンが表示される（pinned=false）', () => {
     render(<StepperInput {...defaultProps} pinned={false} onPin={vi.fn()} />);
-    expect(screen.getByTitle('デフォルトに設定')).toBeInTheDocument();
+    expect(screen.getByText('📌')).toBeInTheDocument();
   });
 
   it('ピンアイコンが表示される（pinned=true）', () => {
     render(<StepperInput {...defaultProps} pinned={true} onPin={vi.fn()} />);
-    expect(screen.getByTitle('デフォルト設定済み')).toBeInTheDocument();
+    expect(screen.getByText('📌')).toBeInTheDocument();
   });
 
   it('ピンクリックでonPinが呼ばれる', () => {
     const onPin = vi.fn();
     render(<StepperInput {...defaultProps} pinned={false} onPin={onPin} />);
-    fireEvent.click(screen.getByTitle('デフォルトに設定'));
+    fireEvent.click(screen.getByText('📌'));
     expect(onPin).toHaveBeenCalled();
   });
 
@@ -123,7 +123,7 @@ describe('StepperInput', () => {
     );
     const fills = container.querySelectorAll('[class*="transition-all"]');
     const fill = Array.from(fills).find((el) => (el as HTMLElement).style.backgroundColor);
-    expect((fill as HTMLElement)?.style.backgroundColor).toMatch(/EF9F27|rgb\(239/i);
+    expect((fill as HTMLElement)?.style.backgroundColor).toMatch(/B8860B|rgb/i);
   });
 
   it('湿度バーが危険閾値で赤になる', () => {
@@ -132,6 +132,6 @@ describe('StepperInput', () => {
     );
     const fills = container.querySelectorAll('[class*="transition-all"]');
     const fill = Array.from(fills).find((el) => (el as HTMLElement).style.backgroundColor);
-    expect((fill as HTMLElement)?.style.backgroundColor).toMatch(/E24B4A|rgb\(226/i);
+    expect((fill as HTMLElement)?.style.backgroundColor).toMatch(/C53030|rgb/i);
   });
 });
