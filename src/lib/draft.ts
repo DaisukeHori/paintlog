@@ -93,6 +93,7 @@ export async function createNewDraft(): Promise<Draft> {
     gun_type: null, gun_distance: null,
     coat_count: null, surface_prep: null, drying_method: null, drying_temp: null, drying_time: null,
     film_thickness: null, fan_power: null, defects: {},
+    batch_size: 20, defect_count: 0,
     photo_urls: [], video_urls: [], comment: null,
     custom_fields: {},
   };

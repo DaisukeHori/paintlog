@@ -18,7 +18,7 @@ describe('DefectChips', () => {
 
   it('未選択時に「選択なし」表示', () => {
     render(<DefectChips value={{}} onChange={vi.fn()} />);
-    expect(screen.getByText(/選択なし/)).toBeInTheDocument();
+    expect(screen.getByText(/不具合なし/)).toBeInTheDocument();
   });
 
   it('タップで×1になる', () => {
@@ -28,9 +28,9 @@ describe('DefectChips', () => {
     expect(onChange).toHaveBeenCalledWith({ 'タレ': 1 });
   });
 
-  it('×5をタップで解除される', () => {
+  it('バッチ上限でタップ→解除', () => {
     const onChange = vi.fn();
-    render(<DefectChips value={{ 'タレ': 5, 'ブツ': 2 }} onChange={onChange} />);
+    render(<DefectChips value={{ 'タレ': 20, 'ブツ': 2 }} onChange={onChange} />);
     fireEvent.click(screen.getByText(/タレ/));
     expect(onChange).toHaveBeenCalledWith({ 'ブツ': 2 });
   });
@@ -44,7 +44,7 @@ describe('DefectChips', () => {
 
   it('選択中のチップに重症度表示', () => {
     render(<DefectChips value={{ 'タレ': 3 }} onChange={vi.fn()} />);
-    expect(screen.getByText(/×3/)).toBeInTheDocument();
+    expect(screen.getAllByText(/3枚/).length).toBeGreaterThan(0);
   });
 
   it('未選択チップはデフォルトスタイル', () => {
@@ -55,7 +55,7 @@ describe('DefectChips', () => {
 
   it('合計カウントを表示する', () => {
     render(<DefectChips value={{ 'タレ': 3, 'ブツ': 2 }} onChange={vi.fn()} />);
-    expect(screen.getByText(/計5/)).toBeInTheDocument();
+    expect(screen.getByText(/延べ5枚/)).toBeInTheDocument();
   });
 });
 

@@ -83,12 +83,18 @@ export default function LogsPage() {
                       {log.photo_urls.length}枚
                     </div>
                   )}
-                  {/* Defect badge */}
-                  {Object.keys(log.defects || {}).length > 0 && (
-                    <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style={{ background: 'var(--pl-danger)' }}>
-                      {Object.entries(log.defects || {}).map(([k,v]) => `${k}×${v}`).join(' ')}
-                    </div>
-                  )}
+                  {/* Yield badge */}
+                  {(() => {
+                    const bs = (log as any).batch_size || 20;
+                    const dc = (log as any).defect_count || 0;
+                    const yr = bs > 0 ? Math.round(((bs - dc) / bs) * 100) : 100;
+                    const c = yr >= 95 ? '#16A34A' : yr >= 80 ? '#B8860B' : '#C53030';
+                    return (
+                      <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style={{ background: c }}>
+                        歩留{yr}%
+                      </div>
+                    );
+                  })()}
                 </div>
                 {/* Info area */}
                 <div className="p-2.5">
@@ -141,8 +147,16 @@ export default function LogsPage() {
                       {log.coat_count !== null && <span>{log.coat_count}コート</span>}
                     </div>
                     {Object.keys(log.defects || {}).length > 0 && (
-                      <div className="flex gap-1 mt-1">
-                        {Object.entries(log.defects || {}).map(([d, sev]) => <span key={d} className="pl-badge" style={{ background: 'var(--pl-danger-soft)', color: 'var(--pl-danger)', fontSize: '10px' }}>{d}×{sev as number}</span>)}
+                      <div className="flex gap-1 mt-1 flex-wrap">
+                        {(() => {
+                          const bs = (log as any).batch_size || 20;
+                          const dc = (log as any).defect_count || 0;
+                          const yr = bs > 0 ? Math.round(((bs - dc) / bs) * 100) : 100;
+                          const c = yr >= 95 ? 'var(--pl-success)' : yr >= 80 ? 'var(--pl-warn)' : 'var(--pl-danger)';
+                          const bg = yr >= 95 ? 'var(--pl-success-soft)' : yr >= 80 ? 'var(--pl-warn-soft)' : 'var(--pl-danger-soft)';
+                          return <span className="pl-badge" style={{ background: bg, color: c, fontSize: '10px' }}>歩留{yr}% ({dc}/{bs})</span>;
+                        })()}
+                        {Object.entries(log.defects || {}).map(([d, cnt]) => <span key={d} className="pl-badge" style={{ background: 'var(--pl-danger-soft)', color: 'var(--pl-danger)', fontSize: '10px' }}>{d}{cnt as number}枚</span>)}
                       </div>
                     )}
                   </div>

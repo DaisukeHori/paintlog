@@ -35,8 +35,8 @@ export interface Cluster {
 
 export interface PatternResult {
   clusters: Cluster[];
-  totalSuccess: number;
-  totalFailure: number;
+  totalHighYield: number;
+  totalLowYield: number;
   featureImportance: { key: string; label: string; score: number }[];
   successVsFailure: { key: string; label: string; unit: string; successAvg: number; failureAvg: number; diff: number }[];
 }
@@ -157,10 +157,12 @@ export function analyzePatterns(logs: Array<Record<string, unknown>>): PatternRe
 
   // 特徴ベクトルに変換
   const rawData = validLogs.map(log => FEATURES.map(f => Number(log[f.key])));
-  const isSuccess = validLogs.map(log => {
-    const defects = log.defects as Record<string, number> | null;
-    return !defects || Object.keys(defects).length === 0;
+  const yieldRates = validLogs.map(log => {
+    const bs = Number(log.batch_size) || 20;
+    const dc = Number(log.defect_count) || 0;
+    return bs > 0 ? ((bs - dc) / bs) * 100 : 100;
   });
+  const isHighYield = yieldRates.map(yr => yr >= 90); // 歩留まり90%以上 = 高歩留まり
   const logIds = validLogs.map(log => String(log.id || ''));
 
   // 正規化
@@ -169,9 +171,9 @@ export function analyzePatterns(logs: Array<Record<string, unknown>>): PatternRe
   const maxes = Array.from({ length: dim }, (_, i) => Math.max(...rawData.map(r => r[i])));
   const normalized = normalize(rawData, mins, maxes);
 
-  // 成功データのみでクラスタリング
-  const successIdx = isSuccess.map((s, i) => s ? i : -1).filter(i => i >= 0);
-  const failureIdx = isSuccess.map((s, i) => !s ? i : -1).filter(i => i >= 0);
+  // 高歩留まりデータでクラスタリング
+  const successIdx = isHighYield.map((s, i) => s ? i : -1).filter(i => i >= 0);
+  const failureIdx = isHighYield.map((s, i) => !s ? i : -1).filter(i => i >= 0);
 
   if (successIdx.length < 3) return null;
 
@@ -239,8 +241,8 @@ export function analyzePatterns(logs: Array<Record<string, unknown>>): PatternRe
 
   return {
     clusters,
-    totalSuccess: successIdx.length,
-    totalFailure: failureIdx.length,
+    totalHighYield: successIdx.length,
+    totalLowYield: failureIdx.length,
     featureImportance: featureImp,
     successVsFailure,
   };
@@ -254,5 +256,5 @@ function generateDescription(ranges: Cluster['ranges'], successRate: number): st
   if (temp) parts.push(`気温${Math.round(temp.min)}〜${Math.round(temp.max)}℃`);
   if (hum) parts.push(`湿度${Math.round(hum.min)}〜${Math.round(hum.max)}%`);
   if (press) parts.push(`エア圧${press.min.toFixed(2)}〜${press.max.toFixed(2)}MPa`);
-  return `${parts.join('、')}（成功率${successRate}%）`;
+  return `${parts.join('、')}（高歩留まり率${successRate}%）`;
 }

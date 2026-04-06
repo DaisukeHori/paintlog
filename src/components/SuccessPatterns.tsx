@@ -105,8 +105,8 @@ export function SuccessPatterns() {
         <div className="space-y-4 mt-3">
           {/* Summary */}
           <div className="grid grid-cols-3 gap-2">
-            <div className="pl-stat"><div className="pl-stat-value" style={{ color: 'var(--pl-success)' }}>{result.totalSuccess}</div><div className="pl-stat-label">成功</div></div>
-            <div className="pl-stat"><div className="pl-stat-value" style={{ color: 'var(--pl-danger)' }}>{result.totalFailure}</div><div className="pl-stat-label">不具合あり</div></div>
+            <div className="pl-stat"><div className="pl-stat-value" style={{ color: 'var(--pl-success)' }}>{result.totalHighYield}</div><div className="pl-stat-label">歩留90%↑</div></div>
+            <div className="pl-stat"><div className="pl-stat-value" style={{ color: 'var(--pl-danger)' }}>{result.totalLowYield}</div><div className="pl-stat-label">歩留90%↓</div></div>
             <div className="pl-stat"><div className="pl-stat-value">{result.clusters.length}</div><div className="pl-stat-label">パターン数</div></div>
           </div>
 
@@ -137,7 +137,7 @@ export function SuccessPatterns() {
                     </span>
                   </div>
                   <span className="text-xs font-bold" style={{ color: cluster.successRate >= 80 ? 'var(--pl-success)' : cluster.successRate >= 60 ? 'var(--pl-warn)' : 'var(--pl-danger)' }}>
-                    成功率{cluster.successRate}%
+                    高歩留率{cluster.successRate}%
                   </span>
                 </div>
                 <div className="text-[11px] mb-2" style={{ color: 'var(--pl-text-2)' }}>{cluster.description}</div>
@@ -158,14 +158,14 @@ export function SuccessPatterns() {
 
           {/* Feature importance */}
           <div>
-            <div className="text-xs font-semibold mb-1" style={{ color: 'var(--pl-text-2)' }}>成功/失敗を分ける要因（重要度）</div>
-            <div className="text-[10px] mb-1" style={{ color: 'var(--pl-text-3)' }}>高いほど成功と失敗の差が大きい項目</div>
+            <div className="text-xs font-semibold mb-1" style={{ color: 'var(--pl-text-2)' }}>歩留まりを左右する要因（重要度）</div>
+            <div className="text-[10px] mb-1" style={{ color: 'var(--pl-text-3)' }}>高いほど高歩留・低歩留の差が大きい項目</div>
             <div style={{ position: 'relative', height: '180px' }}><canvas ref={importanceRef} /></div>
           </div>
 
           {/* Success vs Failure comparison */}
           <div>
-            <div className="text-xs font-semibold mb-2" style={{ color: 'var(--pl-text-2)' }}>成功時 vs 不具合時の平均比較</div>
+            <div className="text-xs font-semibold mb-2" style={{ color: 'var(--pl-text-2)' }}>高歩留まり時 vs 低歩留まり時の平均比較</div>
             <div className="space-y-1">
               {result.successVsFailure.map(f => {
                 const absDiff = Math.abs(f.diff);

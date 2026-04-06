@@ -22,7 +22,7 @@ const FIELD_LABELS: Record<string, string> = {
   paint_product: '塗料品番', dilution_ratio: '希釈率', viscosity_seconds: '粘度（滴下秒）', air_pressure: 'エア圧',
   throttle_turns: '絞り', needle_turns: 'ニードル', gun_type: 'ガン種類',
   gun_distance: 'ガン距離', coat_count: 'コート数', film_thickness: '膜厚',
-  fan_power: 'ファン出力', surface_prep: '下地処理', drying_method: '乾燥方法', drying_temp: '乾燥温度', drying_time: '乾燥時間',
+  fan_power: 'ファン出力', batch_size: 'バッチ枚数', defect_count: 'NG枚数', surface_prep: '下地処理', drying_method: '乾燥方法', drying_temp: '乾燥温度', drying_time: '乾燥時間',
 };
 
 interface LogEditorProps {
@@ -331,8 +331,49 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
               <StepperInput label="ガン距離" unit="cm" value={form.gun_distance} onChange={(v) => set('gun_distance', v)} step={1} min={5} max={50} presets={[15, 18, 20, 25]} pinned={'gun_distance' in pinnedFields} onPin={() => togglePin('gun_distance')} />
             </>
           )},
-          { id: 4, label: '塗装工程', border: 'border-amber-200', content: (
+          { id: 4, label: '塗装工程', border: 'border-amber-200', content: (() => {
+            const yieldRate = form.batch_size > 0 ? Math.round(((form.batch_size - form.defect_count) / form.batch_size) * 100) : 100;
+            const yieldColor = yieldRate >= 95 ? 'var(--pl-success)' : yieldRate >= 80 ? 'var(--pl-warn)' : 'var(--pl-danger)';
+            return (
             <>
+              {/* バッチ歩留まり */}
+              <div className="bg-white rounded-xl p-3 border border-stone-200 shadow-sm">
+                <div className="text-xs text-stone-500 font-medium mb-2">バッチ歩留まり</div>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex-1">
+                    <div className="text-[10px] text-stone-400 mb-1">バッチ枚数</div>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => set('batch_size', Math.max(1, (form.batch_size || 20) - 1))}
+                        className="w-10 h-10 rounded-lg bg-stone-100 active:bg-stone-200 flex items-center justify-center text-lg touch-manipulation">−</button>
+                      <div className="flex-1 text-center text-xl font-semibold tabular-nums">{form.batch_size || 20}</div>
+                      <button onClick={() => set('batch_size', Math.min(100, (form.batch_size || 20) + 1))}
+                        className="w-10 h-10 rounded-lg bg-stone-100 active:bg-stone-200 flex items-center justify-center text-lg touch-manipulation">+</button>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[10px] text-stone-400 mb-1">NG枚数</div>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => set('defect_count', Math.max(0, (form.defect_count || 0) - 1))}
+                        className="w-10 h-10 rounded-lg bg-stone-100 active:bg-stone-200 flex items-center justify-center text-lg touch-manipulation">−</button>
+                      <div className="flex-1 text-center text-xl font-semibold tabular-nums" style={{ color: form.defect_count > 0 ? 'var(--pl-danger)' : undefined }}>{form.defect_count || 0}</div>
+                      <button onClick={() => set('defect_count', Math.min(form.batch_size || 20, (form.defect_count || 0) + 1))}
+                        className="w-10 h-10 rounded-lg bg-stone-100 active:bg-stone-200 flex items-center justify-center text-lg touch-manipulation">+</button>
+                    </div>
+                  </div>
+                  <div className="text-center px-2">
+                    <div className="text-[10px] text-stone-400 mb-1">歩留まり</div>
+                    <div className="text-2xl font-bold tabular-nums" style={{ color: yieldColor }}>{yieldRate}%</div>
+                  </div>
+                </div>
+                {/* 歩留まりバー */}
+                <div className="h-3 bg-stone-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-200" style={{ width: `${yieldRate}%`, backgroundColor: yieldColor }} />
+                </div>
+                <div className="flex justify-between text-[9px] text-stone-300 mt-0.5 px-0.5">
+                  <span>0%</span><span>50%</span><span>100%</span>
+                </div>
+              </div>
+
               <CoatSelector value={form.coat_count} onChange={(v) => set('coat_count', v)} pinned={'coat_count' in pinnedFields} onPin={() => togglePin('coat_count')} />
               <AutocompleteInput label="下地処理" fieldName="surface_prep" value={form.surface_prep || ''} onChange={(v) => setTextAndSuggest('surface_prep', 'surface_prep', v)} suggestions={suggestions['surface_prep'] || []} onDeleteSuggestion={(v) => deleteSuggestion('surface_prep', v)} />
               <AutocompleteInput label="乾燥方法" fieldName="drying_method" value={form.drying_method || ''} onChange={(v) => setTextAndSuggest('drying_method', 'drying_method', v)} suggestions={suggestions['drying_method'] || []} onDeleteSuggestion={(v) => deleteSuggestion('drying_method', v)} placeholder="自然乾燥・強制乾燥・赤外線..." />
@@ -342,9 +383,15 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
               </div>
               <StepperInput label="膜厚" unit="μm" value={form.film_thickness} onChange={(v) => set('film_thickness', v)} step={1} min={0} max={200} presets={[15, 25, 35, 50, 80]} pinned={'film_thickness' in pinnedFields} onPin={() => togglePin('film_thickness')} />
               <SliderInput label="ファン出力" unit="%" value={form.fan_power} onChange={(v) => set('fan_power', v)} min={0} max={100} step={5} pinned={'fan_power' in pinnedFields} onPin={() => togglePin('fan_power')} />
-              <DefectChips value={form.defects} onChange={(v) => set('defects', v)} />
+              <DefectChips value={form.defects} onChange={(v) => {
+                set('defects', v);
+                // defect_countを自動更新（タイプ別の最大値 = 重複考慮の推定NG枚数）
+                const maxPerType = Math.max(0, ...Object.values(v));
+                const totalUnique = Object.values(v).reduce((a, b) => a + b, 0);
+                set('defect_count', Math.min(totalUnique, form.batch_size || 20));
+              }} batchSize={form.batch_size || 20} />
             </>
-          )},
+          ); })()},
           { id: 5, label: '記録・エビデンス', border: 'border-orange-200', content: (
             <>
               <FileUpload photos={form.photo_urls} videos={form.video_urls} onPhotosChange={(v) => set('photo_urls', v)} onVideosChange={(v) => set('video_urls', v)} />

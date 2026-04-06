@@ -30,7 +30,10 @@ export interface PaintLog {
   drying_time: number | null;
   film_thickness: number | null;
   fan_power: number | null;
-  defects: Record<string, number>; // {"タレ": 3, "ブツ": 1} = severity 1-5
+  defects: Record<string, number>; // {"タレ": 3, "ブツ": 1} = NG枚数
+  // バッチ歩留まり
+  batch_size: number;              // バッチ枚数（1回の塗装で塗る枚数）
+  defect_count: number;            // NG枚数
   // 5. 記録・エビデンス
   photo_urls: string[];
   video_urls: string[];

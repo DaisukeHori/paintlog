@@ -25,23 +25,30 @@ export default function AnalysisPage() {
   // 統計データ
   const stats = useMemo(() => {
     if (logs.length === 0) return null;
-    const defectFree = logs.filter((l) => Object.keys(l.defects || {}).length === 0).length;
+    // 歩留まり計算
+    const yields = logs.map((l) => {
+      const bs = (l as any).batch_size || 20;
+      const dc = (l as any).defect_count || 0;
+      return bs > 0 ? ((bs - dc) / bs) * 100 : 100;
+    });
+    const avgYield = yields.reduce((a, b) => a + b, 0) / yields.length;
     const thicknesses = logs.filter((l) => l.film_thickness !== null).map((l) => l.film_thickness!);
     const avgThickness = thicknesses.length > 0 ? thicknesses.reduce((a, b) => a + b, 0) / thicknesses.length : 0;
+    // 総バッチ枚数と総NG
+    const totalBatch = logs.reduce((s, l) => s + ((l as any).batch_size || 20), 0);
+    const totalNG = logs.reduce((s, l) => s + ((l as any).defect_count || 0), 0);
     // 不具合タイプ集計
     const defectCounts: Record<string, number> = {};
     logs.forEach((l) => Object.entries(l.defects || {}).forEach(([d, count]) => { defectCounts[d] = (defectCounts[d] || 0) + (count as number); }));
-    // 週ごとの不具合率
-    const weeklyMap: Record<string, { total: number; defects: number }> = {};
-    logs.forEach((l) => {
+    // 週ごとの歩留まり平均
+    const weeklyMap: Record<string, { yields: number[] }> = {};
+    logs.forEach((l, i) => {
       const d = new Date(l.painted_at);
-      const week = `${d.getFullYear()}-W${String(Math.ceil((d.getDate() + new Date(d.getFullYear(), d.getMonth(), 1).getDay()) / 7)).padStart(2, '0')}`;
       const key = `${d.getMonth() + 1}/${Math.ceil(d.getDate() / 7)}w`;
-      if (!weeklyMap[key]) weeklyMap[key] = { total: 0, defects: 0 };
-      weeklyMap[key].total++;
-      if (Object.keys(l.defects || {}).length > 0) weeklyMap[key].defects++;
+      if (!weeklyMap[key]) weeklyMap[key] = { yields: [] };
+      weeklyMap[key].yields.push(yields[i]);
     });
-    return { total: logs.length, defectFree, defectRate: Math.round((1 - defectFree / logs.length) * 100), avgThickness: Math.round(avgThickness), defectCounts, weeklyMap };
+    return { total: logs.length, avgYield: Math.round(avgYield * 10) / 10, totalBatch, totalNG, avgThickness: Math.round(avgThickness), defectCounts, weeklyMap };
   }, [logs]);
 
   // Chart.js描画
@@ -49,35 +56,44 @@ export default function AnalysisPage() {
     if (!stats || logs.length === 0) return;
     let charts: any[] = [];
     import('chart.js/auto').then(({ default: Chart }) => {
-      // 1. 不具合率推移（棒グラフ）
+      // 1. 歩留まり推移（棒グラフ）
       if (trendRef.current) {
         const weeks = Object.keys(stats.weeklyMap);
-        const rates = weeks.map((w) => Math.round((stats.weeklyMap[w].defects / stats.weeklyMap[w].total) * 100));
+        const rates = weeks.map((w) => {
+          const ys = stats.weeklyMap[w].yields;
+          return Math.round(ys.reduce((a: number, b: number) => a + b, 0) / ys.length);
+        });
         charts.push(new Chart(trendRef.current, {
           type: 'bar',
           data: {
             labels: weeks,
             datasets: [{
-              label: '不具合率 %',
+              label: '歩留まり %',
               data: rates,
-              backgroundColor: rates.map((r) => r > 30 ? '#C5303080' : r > 15 ? '#B8860B60' : '#1A8A5C60'),
+              backgroundColor: rates.map((r) => r >= 95 ? '#16A34A80' : r >= 80 ? '#B8860B60' : '#C5303080'),
               borderRadius: 6,
             }],
           },
-          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { max: 100, ticks: { callback: (v: any) => v + '%' } } } },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 100, ticks: { callback: (v: any) => v + '%' } } } },
         }));
       }
 
-      // 2. 温度×湿度 散布図（不具合あり/なしで色分け）
+      // 2. 温度×湿度 散布図（歩留まり90%以上/未満で色分け）
       if (scatterRef.current) {
-        const ok = logs.filter((l) => l.ambient_temp !== null && l.ambient_humidity !== null && Object.keys(l.defects || {}).length === 0);
-        const ng = logs.filter((l) => l.ambient_temp !== null && l.ambient_humidity !== null && Object.keys(l.defects || {}).length > 0);
+        const highYield = logs.filter((l) => {
+          const bs = (l as any).batch_size || 20; const dc = (l as any).defect_count || 0;
+          return l.ambient_temp !== null && l.ambient_humidity !== null && ((bs - dc) / bs) >= 0.9;
+        });
+        const lowYield = logs.filter((l) => {
+          const bs = (l as any).batch_size || 20; const dc = (l as any).defect_count || 0;
+          return l.ambient_temp !== null && l.ambient_humidity !== null && ((bs - dc) / bs) < 0.9;
+        });
         charts.push(new Chart(scatterRef.current, {
           type: 'scatter',
           data: {
             datasets: [
-              { label: '成功', data: ok.map((l) => ({ x: l.ambient_temp, y: l.ambient_humidity })), backgroundColor: '#1A8A5C90', pointRadius: 6 },
-              { label: '不具合あり', data: ng.map((l) => ({ x: l.ambient_temp, y: l.ambient_humidity })), backgroundColor: '#C5303090', pointRadius: 6, pointStyle: 'crossRot' },
+              { label: '歩留90%↑', data: highYield.map((l) => ({ x: l.ambient_temp, y: l.ambient_humidity })), backgroundColor: '#16A34A90', pointRadius: 6 },
+              { label: '歩留90%↓', data: lowYield.map((l) => ({ x: l.ambient_temp, y: l.ambient_humidity })), backgroundColor: '#C5303090', pointRadius: 6, pointStyle: 'crossRot' },
             ],
           },
           options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: '気温 ℃' } }, y: { title: { display: true, text: '湿度 %' } } } },
@@ -131,20 +147,24 @@ export default function AnalysisPage() {
       <div className="px-4 space-y-3 pb-8">
         {/* サマリー */}
         {stats && (
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="pl-stat">
+              <div className="pl-stat-value" style={{ color: stats.avgYield >= 95 ? 'var(--pl-success)' : stats.avgYield >= 80 ? 'var(--pl-warn)' : 'var(--pl-danger)' }}>
+                {stats.avgYield}%
+              </div>
+              <div className="pl-stat-label">平均歩留まり</div>
+            </div>
             <div className="pl-stat">
               <div className="pl-stat-value">{stats.total}</div>
-              <div className="pl-stat-label">総記録数</div>
+              <div className="pl-stat-label">バッチ数</div>
             </div>
             <div className="pl-stat">
-              <div className="pl-stat-value" style={{ color: stats.defectRate > 30 ? 'var(--pl-danger)' : stats.defectRate > 15 ? 'var(--pl-warn)' : 'var(--pl-success)' }}>
-                {stats.defectRate}%
-              </div>
-              <div className="pl-stat-label">不具合率</div>
+              <div className="pl-stat-value">{stats.totalBatch}<span className="text-sm text-stone-400">枚</span></div>
+              <div className="pl-stat-label">総塗装枚数</div>
             </div>
             <div className="pl-stat">
-              <div className="pl-stat-value">{stats.avgThickness}</div>
-              <div className="pl-stat-label">平均膜厚 μm</div>
+              <div className="pl-stat-value" style={{ color: 'var(--pl-danger)' }}>{stats.totalNG}<span className="text-sm text-stone-400">枚</span></div>
+              <div className="pl-stat-label">総NG枚数</div>
             </div>
           </div>
         )}
@@ -152,23 +172,23 @@ export default function AnalysisPage() {
         {/* 成功パターン発見 */}
         <SuccessPatterns />
 
-        {/* 不具合率推移 */}
+        {/* 歩留まり推移 */}
         <div className="pl-card">
-          <div className="text-xs font-semibold mb-2" style={{ color: 'var(--pl-text-2)' }}>不具合率の推移（週次）</div>
+          <div className="text-xs font-semibold mb-2" style={{ color: 'var(--pl-text-2)' }}>歩留まり推移（週次平均）</div>
           <div style={{ position: 'relative', height: '200px' }}><canvas ref={trendRef} /></div>
         </div>
 
         {/* 温度×湿度 散布図 */}
         <div className="pl-card">
           <div className="text-xs font-semibold mb-1" style={{ color: 'var(--pl-text-2)' }}>環境条件マップ</div>
-          <div className="text-[10px] mb-2" style={{ color: 'var(--pl-text-3)' }}>🟢 成功 / ❌ 不具合あり — 安全な条件ゾーンを可視化</div>
+          <div className="text-[10px] mb-2" style={{ color: 'var(--pl-text-3)' }}>🟢 歩留90%以上 / ❌ 歩留90%未満 — 好条件ゾーンを可視化</div>
           <div style={{ position: 'relative', height: '240px' }}><canvas ref={scatterRef} /></div>
         </div>
 
         {/* 不具合タイプ分布 */}
         {stats && Object.keys(stats.defectCounts).length > 0 && (
           <div className="pl-card">
-            <div className="text-xs font-semibold mb-2" style={{ color: 'var(--pl-text-2)' }}>不具合タイプ別分布</div>
+            <div className="text-xs font-semibold mb-2" style={{ color: 'var(--pl-text-2)' }}>不具合タイプ別NG枚数</div>
             <div style={{ position: 'relative', height: '200px' }}><canvas ref={defectPieRef} /></div>
           </div>
         )}

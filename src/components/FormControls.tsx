@@ -2,58 +2,69 @@
 
 import { DEFECT_OPTIONS } from '@/lib/types';
 
-// 不具合 — タップで重症度 ×1→×2→×3→×4→×5→0
+// 不具合 — タップでNG枚数カウントアップ（MAX=バッチ枚数）
 interface DefectChipsProps {
   value: Record<string, number>;
   onChange: (v: Record<string, number>) => void;
+  batchSize?: number;
 }
 
-const SEVERITY_COLORS = [
-  '', // 0 unused
-  'bg-amber-50 border-amber-300 text-amber-700',     // ×1 軽微
-  'bg-orange-50 border-orange-300 text-orange-700',   // ×2
-  'bg-red-50 border-red-300 text-red-700',            // ×3
-  'bg-red-100 border-red-400 text-red-800',           // ×4
-  'bg-red-200 border-red-500 text-red-900 font-bold', // ×5 最悪
-];
-
-export function DefectChips({ value, onChange }: DefectChipsProps) {
+export function DefectChips({ value, onChange, batchSize = 20 }: DefectChipsProps) {
   const cycle = (d: string) => {
     const current = value[d] || 0;
-    const next = current >= 5 ? 0 : current + 1;
+    const next = current >= batchSize ? 0 : current + 1;
     const updated = { ...value };
     if (next === 0) { delete updated[d]; } else { updated[d] = next; }
     onChange(updated);
   };
 
-  const totalCount = Object.values(value).reduce((a, b) => a + b, 0);
+  // 長押しで+5
+  const handleHold = (d: string) => {
+    const current = value[d] || 0;
+    const next = Math.min(current + 5, batchSize);
+    const updated = { ...value };
+    if (next === 0) { delete updated[d]; } else { updated[d] = next; }
+    onChange(updated);
+  };
+
+  const totalNG = Object.values(value).reduce((a, b) => Math.max(a, b), 0); // 最大NG（重複ありうるので）
+  const uniqueNG = Object.values(value).reduce((a, b) => a + b, 0); // 延べNG
+
+  // 色: NG枚数 / バッチ枚数 の比率で
+  const getColor = (count: number) => {
+    const ratio = count / batchSize;
+    if (ratio === 0) return 'bg-white border-stone-200 text-stone-400';
+    if (ratio <= 0.1) return 'bg-amber-50 border-amber-300 text-amber-700';
+    if (ratio <= 0.2) return 'bg-orange-50 border-orange-300 text-orange-700';
+    if (ratio <= 0.4) return 'bg-red-50 border-red-300 text-red-700';
+    return 'bg-red-100 border-red-400 text-red-800 font-bold';
+  };
 
   return (
     <div className="bg-white rounded-xl p-3 border border-stone-200 shadow-sm">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-stone-500">不具合（タップで重症度UP）</span>
-        {totalCount > 0 && (
+        <span className="text-xs text-stone-500">不具合タイプ別NG枚数</span>
+        {uniqueNG > 0 && (
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-bold">
-            計{totalCount}
+            延べ{uniqueNG}枚
           </span>
         )}
       </div>
       <div className="flex flex-wrap gap-2">
         {DEFECT_OPTIONS.map((d) => {
-          const severity = value[d] || 0;
+          const count = value[d] || 0;
           return (
             <button key={d} onClick={() => cycle(d)}
-              className={`px-3 py-2.5 rounded-full text-sm touch-manipulation border min-h-[44px] transition-all ${
-                severity > 0 ? SEVERITY_COLORS[severity] : 'bg-white border-stone-200 text-stone-400'
-              }`}>
+              onContextMenu={(e) => { e.preventDefault(); handleHold(d); }}
+              className={`px-3 py-2.5 rounded-full text-sm touch-manipulation border min-h-[44px] transition-all ${getColor(count)}`}>
               {d}
-              {severity > 0 && <span className="ml-1 font-bold">×{severity}</span>}
+              {count > 0 && <span className="ml-1 font-bold">{count}枚</span>}
             </button>
           );
         })}
       </div>
       <div className="text-[10px] text-stone-400 mt-1.5">
-        {totalCount === 0 ? '選択なし = 不具合なし' : 'タップで×1→×5、もう一回で解除'}
+        {uniqueNG === 0 ? 'タップでNG枚数をカウント（不具合なし=タップしない）' : `タップで+1、${batchSize}枚でリセット`}
       </div>
     </div>
   );
