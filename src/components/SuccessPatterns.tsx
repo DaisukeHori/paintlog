@@ -91,7 +91,7 @@ export function SuccessPatterns() {
       <div className="flex items-center justify-between mb-3">
         <div>
           <div className="text-sm font-semibold">🔬 成功パターン発見</div>
-          <div className="text-[10px]" style={{ color: 'var(--pl-text-3)' }}>K-meansクラスタリングで成功条件のまとまりを自動検出</div>
+          <div className="text-[10px]" style={{ color: 'var(--pl-text-3)' }}>データから高歩留まりの条件パターンを自動発見（上位25%を基準）</div>
         </div>
         <button onClick={analyze} disabled={loading}
           className="px-4 py-2 text-xs font-semibold rounded-lg touch-manipulation text-white" style={{ background: loading ? 'var(--pl-text-3)' : 'var(--pl-accent)' }}>
@@ -105,8 +105,8 @@ export function SuccessPatterns() {
         <div className="space-y-4 mt-3">
           {/* Summary */}
           <div className="grid grid-cols-3 gap-2">
-            <div className="pl-stat"><div className="pl-stat-value" style={{ color: 'var(--pl-success)' }}>{result.totalHighYield}</div><div className="pl-stat-label">歩留90%↑</div></div>
-            <div className="pl-stat"><div className="pl-stat-value" style={{ color: 'var(--pl-danger)' }}>{result.totalLowYield}</div><div className="pl-stat-label">歩留90%↓</div></div>
+            <div className="pl-stat"><div className="pl-stat-value" style={{ color: 'var(--pl-success)' }}>{result.totalHighYield}</div><div className="pl-stat-label">歩留{result.yieldThreshold}%↑</div></div>
+            <div className="pl-stat"><div className="pl-stat-value" style={{ color: 'var(--pl-danger)' }}>{result.totalLowYield}</div><div className="pl-stat-label">歩留{result.yieldThreshold}%↓</div></div>
             <div className="pl-stat"><div className="pl-stat-value">{result.clusters.length}</div><div className="pl-stat-label">パターン数</div></div>
           </div>
 

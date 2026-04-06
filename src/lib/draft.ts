@@ -108,7 +108,7 @@ export async function createNewDraft(): Promise<Draft> {
     'ambient_temp', 'ambient_humidity', 'booth_temp', 'workpiece_temp', 'paint_temp',
     'paint_type', 'paint_product', 'dilution_ratio', 'viscosity_seconds', 'paint_lot',
     'air_pressure', 'throttle_turns', 'needle_turns', 'gun_type', 'gun_distance',
-    'coat_count', 'surface_prep', 'drying_method', 'drying_temp', 'drying_time', 'film_thickness', 'fan_power',
+    'coat_count', 'surface_prep', 'drying_method', 'drying_temp', 'drying_time', 'film_thickness', 'fan_power', 'batch_size',
   ];
   if (lastLog && useLastValue) {
     lastValueFields.forEach((k) => {

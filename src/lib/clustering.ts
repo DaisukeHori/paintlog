@@ -37,6 +37,7 @@ export interface PatternResult {
   clusters: Cluster[];
   totalHighYield: number;
   totalLowYield: number;
+  yieldThreshold: number;  // 使用した閾値
   featureImportance: { key: string; label: string; score: number }[];
   successVsFailure: { key: string; label: string; unit: string; successAvg: number; failureAvg: number; diff: number }[];
 }
@@ -162,7 +163,11 @@ export function analyzePatterns(logs: Array<Record<string, unknown>>): PatternRe
     const dc = Number(log.defect_count) || 0;
     return bs > 0 ? ((bs - dc) / bs) * 100 : 100;
   });
-  const isHighYield = yieldRates.map(yr => yr >= 90); // 歩留まり90%以上 = 高歩留まり
+  // 動的閾値: 上位25%（第3四分位数）を「高歩留まり」とする
+  const sortedYields = [...yieldRates].sort((a, b) => a - b);
+  const q3Index = Math.floor(sortedYields.length * 0.75);
+  const yieldThreshold = sortedYields[q3Index] ?? 50;
+  const isHighYield = yieldRates.map(yr => yr >= yieldThreshold);
   const logIds = validLogs.map(log => String(log.id || ''));
 
   // 正規化
@@ -243,6 +248,7 @@ export function analyzePatterns(logs: Array<Record<string, unknown>>): PatternRe
     clusters,
     totalHighYield: successIdx.length,
     totalLowYield: failureIdx.length,
+    yieldThreshold: Math.round(yieldThreshold),
     featureImportance: featureImp,
     successVsFailure,
   };

@@ -205,7 +205,12 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
       case 1: return [form.ambient_temp !== null ? `${form.ambient_temp}℃` : '', form.ambient_humidity !== null ? `${form.ambient_humidity}%` : ''].filter(Boolean).join(' / ') || '未入力';
       case 2: return form.paint_type || '未入力';
       case 3: return form.air_pressure !== null ? `${form.air_pressure}MPa` : '未入力';
-      case 4: return form.coat_count !== null ? `${form.coat_count}コート` : '未入力';
+      case 4: {
+        const bs = form.batch_size || 20;
+        const dc = form.defect_count || 0;
+        const yr = bs > 0 ? Math.round(((bs - dc) / bs) * 100) : 100;
+        return `歩留${yr}% (${dc}/${bs}枚)`;
+      }
       case 5: return `写真${form.photo_urls.length} 動画${form.video_urls.length}`;
       default: return '';
     }

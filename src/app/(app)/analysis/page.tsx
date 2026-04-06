@@ -5,10 +5,12 @@ import { createClient } from '@/lib/supabase/client';
 import { PaintLog } from '@/lib/types';
 import { AiChat, MonthlyReport } from '@/components/AiFeatures';
 import { SuccessPatterns } from '@/components/SuccessPatterns';
+import { AnalysisExplainer } from '@/components/AnalysisExplainer';
 
 export default function AnalysisPage() {
   const [logs, setLogs] = useState<PaintLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<'data' | 'howto'>('data');
   const trendRef = useRef<HTMLCanvasElement>(null);
   const scatterRef = useRef<HTMLCanvasElement>(null);
   const defectPieRef = useRef<HTMLCanvasElement>(null);
@@ -78,22 +80,30 @@ export default function AnalysisPage() {
         }));
       }
 
-      // 2. 温度×湿度 散布図（歩留まり90%以上/未満で色分け）
+      // 2. 温度×湿度 散布図（歩留まり上位/下位で色分け）
       if (scatterRef.current) {
+        // 動的閾値: 上位25%を「高歩留まり」
+        const yieldsSorted = logs.map(l => {
+          const bs = (l as any).batch_size || 20; const dc = (l as any).defect_count || 0;
+          return bs > 0 ? ((bs - dc) / bs) : 1;
+        }).sort((a, b) => a - b);
+        const threshold = yieldsSorted[Math.floor(yieldsSorted.length * 0.75)] ?? 0.5;
+
         const highYield = logs.filter((l) => {
           const bs = (l as any).batch_size || 20; const dc = (l as any).defect_count || 0;
-          return l.ambient_temp !== null && l.ambient_humidity !== null && ((bs - dc) / bs) >= 0.9;
+          return l.ambient_temp !== null && l.ambient_humidity !== null && ((bs - dc) / bs) >= threshold;
         });
         const lowYield = logs.filter((l) => {
           const bs = (l as any).batch_size || 20; const dc = (l as any).defect_count || 0;
-          return l.ambient_temp !== null && l.ambient_humidity !== null && ((bs - dc) / bs) < 0.9;
+          return l.ambient_temp !== null && l.ambient_humidity !== null && ((bs - dc) / bs) < threshold;
         });
+        const thPct = Math.round(threshold * 100);
         charts.push(new Chart(scatterRef.current, {
           type: 'scatter',
           data: {
             datasets: [
-              { label: '歩留90%↑', data: highYield.map((l) => ({ x: l.ambient_temp, y: l.ambient_humidity })), backgroundColor: '#16A34A90', pointRadius: 6 },
-              { label: '歩留90%↓', data: lowYield.map((l) => ({ x: l.ambient_temp, y: l.ambient_humidity })), backgroundColor: '#C5303090', pointRadius: 6, pointStyle: 'crossRot' },
+              { label: `歩留${thPct}%↑`, data: highYield.map((l) => ({ x: l.ambient_temp, y: l.ambient_humidity })), backgroundColor: '#16A34A90', pointRadius: 6 },
+              { label: `歩留${thPct}%↓`, data: lowYield.map((l) => ({ x: l.ambient_temp, y: l.ambient_humidity })), backgroundColor: '#C5303090', pointRadius: 6, pointStyle: 'crossRot' },
             ],
           },
           options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: '気温 ℃' } }, y: { title: { display: true, text: '湿度 %' } } } },
@@ -142,8 +152,24 @@ export default function AnalysisPage() {
     <div>
       <div className="sticky top-0 z-10 px-4 pt-[env(safe-area-inset-top)]" style={{ background: 'rgba(246,245,241,0.92)', backdropFilter: 'blur(20px)' }}>
         <div className="py-3"><h1 className="text-lg font-bold">分析</h1></div>
+        <div className="flex gap-1 p-1 rounded-xl mb-2" style={{ background: 'var(--pl-surface-2)' }}>
+          {([['data', 'データ分析'], ['howto', '分析の仕組み']] as const).map(([t, label]) => (
+            <button key={t} onClick={() => setTab(t)}
+              className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all"
+              style={{ background: tab === t ? 'var(--pl-surface)' : 'transparent',
+                color: tab === t ? 'var(--pl-accent)' : 'var(--pl-text-3)',
+                boxShadow: tab === t ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {tab === 'howto' ? (
+        <div className="px-4 pb-8">
+          <AnalysisExplainer />
+        </div>
+      ) : (
       <div className="px-4 space-y-3 pb-8">
         {/* サマリー */}
         {stats && (
@@ -181,7 +207,7 @@ export default function AnalysisPage() {
         {/* 温度×湿度 散布図 */}
         <div className="pl-card">
           <div className="text-xs font-semibold mb-1" style={{ color: 'var(--pl-text-2)' }}>環境条件マップ</div>
-          <div className="text-[10px] mb-2" style={{ color: 'var(--pl-text-3)' }}>🟢 歩留90%以上 / ❌ 歩留90%未満 — 好条件ゾーンを可視化</div>
+          <div className="text-[10px] mb-2" style={{ color: 'var(--pl-text-3)' }}>🟢 上位25% / ❌ 下位 — あなたのデータから好条件ゾーンを可視化</div>
           <div style={{ position: 'relative', height: '240px' }}><canvas ref={scatterRef} /></div>
         </div>
 
@@ -203,6 +229,7 @@ export default function AnalysisPage() {
         <AiChat />
         <MonthlyReport />
       </div>
+      )}
     </div>
   );
 }
