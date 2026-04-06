@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { PaintLog } from '@/lib/types';
 import { AiChat, MonthlyReport } from '@/components/AiFeatures';
+import { SuccessPatterns } from '@/components/SuccessPatterns';
 
 export default function AnalysisPage() {
   const [logs, setLogs] = useState<PaintLog[]>([]);
@@ -147,6 +148,9 @@ export default function AnalysisPage() {
             </div>
           </div>
         )}
+
+        {/* 成功パターン発見 */}
+        <SuccessPatterns />
 
         {/* 不具合率推移 */}
         <div className="pl-card">
