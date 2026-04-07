@@ -30,7 +30,7 @@ export async function POST() {
       model: prefs.recommend || 'gpt-5.4-mini',
       messages: [
         { role: 'system', content: 'あなたは塗装品質管理のエキスパートです。クラスタリング分析の結果を、現場の塗装作業者が理解しやすい日本語で簡潔に解釈してください。200文字以内で。' },
-        { role: 'user', content: `歩留まりパターン分析結果:\n${JSON.stringify(result.clusters.map(c => ({ id: c.id, size: c.size, successRate: c.successRate, ranges: c.ranges })))}\n\n高歩留vs低歩留の差:\n${JSON.stringify(result.successVsFailure)}\n\n重要度:\n${JSON.stringify(result.featureImportance)}` },
+        { role: 'user', content: `歩留まりパターン分析結果:\n全体平均歩留: ${result.overallAvgYield}%\n上位群(${result.yieldThreshold}%↑): 平均${result.highYieldAvg}%\n下位群: 平均${result.lowYieldAvg}%\n\nクラスタ:\n${JSON.stringify(result.clusters.map(c => ({ id: c.id, size: c.size, avgYield: c.avgYield, ranges: c.ranges })))}\n\n高歩留vs低歩留の条件差:\n${JSON.stringify(result.successVsFailure)}\n\n重要度:\n${JSON.stringify(result.featureImportance)}` },
       ],
       max_tokens: 300,
     });

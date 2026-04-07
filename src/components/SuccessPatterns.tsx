@@ -104,10 +104,23 @@ export function SuccessPatterns() {
       {result && (
         <div className="space-y-4 mt-3">
           {/* Summary */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="pl-stat"><div className="pl-stat-value" style={{ color: 'var(--pl-success)' }}>{result.totalHighYield}</div><div className="pl-stat-label">歩留{result.yieldThreshold}%↑</div></div>
-            <div className="pl-stat"><div className="pl-stat-value" style={{ color: 'var(--pl-danger)' }}>{result.totalLowYield}</div><div className="pl-stat-label">歩留{result.yieldThreshold}%↓</div></div>
-            <div className="pl-stat"><div className="pl-stat-value">{result.clusters.length}</div><div className="pl-stat-label">パターン数</div></div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="pl-stat">
+              <div className="pl-stat-value" style={{ color: 'var(--pl-success)' }}>{result.highYieldAvg}%</div>
+              <div className="pl-stat-label">上位群の平均歩留</div>
+            </div>
+            <div className="pl-stat">
+              <div className="pl-stat-value" style={{ color: 'var(--pl-danger)' }}>{result.lowYieldAvg}%</div>
+              <div className="pl-stat-label">下位群の平均歩留</div>
+            </div>
+            <div className="pl-stat">
+              <div className="pl-stat-value">{result.totalHighYield}<span className="text-sm text-stone-400">件</span></div>
+              <div className="pl-stat-label">上位（{result.yieldThreshold}%↑）</div>
+            </div>
+            <div className="pl-stat">
+              <div className="pl-stat-value">{result.clusters.length}</div>
+              <div className="pl-stat-label">パターン数</div>
+            </div>
           </div>
 
           {/* AI Interpretation */}
@@ -136,8 +149,8 @@ export function SuccessPatterns() {
                       {cluster.size}件
                     </span>
                   </div>
-                  <span className="text-xs font-bold" style={{ color: cluster.successRate >= 80 ? 'var(--pl-success)' : cluster.successRate >= 60 ? 'var(--pl-warn)' : 'var(--pl-danger)' }}>
-                    高歩留率{cluster.successRate}%
+                  <span className="text-xs font-bold" style={{ color: cluster.avgYield >= 70 ? 'var(--pl-success)' : cluster.avgYield >= 50 ? 'var(--pl-warn)' : 'var(--pl-danger)' }}>
+                    平均歩留{cluster.avgYield}%
                   </span>
                 </div>
                 <div className="text-[11px] mb-2" style={{ color: 'var(--pl-text-2)' }}>{cluster.description}</div>

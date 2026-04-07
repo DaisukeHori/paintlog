@@ -27,17 +27,21 @@ export interface Cluster {
   id: number;
   size: number;
   successRate: number;
-  centroid: number[];      // 正規化済み
-  rawCentroid: number[];   // 元スケール
+  avgYield: number;           // クラスタ内の平均歩留まり（%）
+  centroid: number[];
+  rawCentroid: number[];
   ranges: { key: string; label: string; unit: string; min: number; max: number; avg: number }[];
-  description: string;     // 自動生成された説明
+  description: string;
 }
 
 export interface PatternResult {
   clusters: Cluster[];
   totalHighYield: number;
   totalLowYield: number;
-  yieldThreshold: number;  // 使用した閾値
+  yieldThreshold: number;
+  overallAvgYield: number;       // 全体平均歩留まり
+  highYieldAvg: number;          // 高歩留まり群の平均歩留まり
+  lowYieldAvg: number;           // 低歩留まり群の平均歩留まり
   featureImportance: { key: string; label: string; score: number }[];
   successVsFailure: { key: string; label: string; unit: string; successAvg: number; failureAvg: number; diff: number }[];
 }
@@ -192,43 +196,46 @@ export function analyzePatterns(logs: Array<Record<string, unknown>>): PatternRe
   const { assignments, centroids } = kmeans(successNorm, k);
 
   // 各クラスタの情報を構築
-  const clusters: Cluster[] = centroids.map((centroid, ci) => {
-    const memberIdx = assignments.map((a, i) => a === ci ? i : -1).filter(i => i >= 0);
-    const members = memberIdx.map(i => successRaw[i]);
+  // 全レコード（高歩留+低歩留の両方）を最近傍クラスタに割り当て、実際の歩留まりを計算
+  const allAssignments = normalized.map(p => {
+    let minDist = Infinity, closest = 0;
+    centroids.forEach((c, i) => { const d = distance(p, c); if (d < minDist) { minDist = d; closest = i; } });
+    return closest;
+  });
 
-    // 元スケールのセントロイド
+  const clusters: Cluster[] = centroids.map((centroid, ci) => {
+    // 高歩留まりメンバー（クラスタリング元）
+    const highYieldMemberIdx = assignments.map((a, i) => a === ci ? i : -1).filter(i => i >= 0);
+    const highYieldMembers = highYieldMemberIdx.map(i => successRaw[i]);
+
+    // 全レコードでこのクラスタに割り当てられたもの
+    const allMemberIdx = allAssignments.map((a, i) => a === ci ? i : -1).filter(i => i >= 0);
+    const allMemberYields = allMemberIdx.map(i => yieldRates[i]);
+    const avgYield = allMemberYields.length > 0
+      ? Math.round((allMemberYields.reduce((a, b) => a + b, 0) / allMemberYields.length) * 10) / 10
+      : 0;
+
+    // 元スケールのセントロイド（高歩留まりメンバーの平均）
     const rawCentroid = FEATURES.map((_, fi) =>
-      members.length > 0 ? members.reduce((s, m) => s + m[fi], 0) / members.length : 0
+      highYieldMembers.length > 0 ? highYieldMembers.reduce((s, m) => s + m[fi], 0) / highYieldMembers.length : 0
     );
 
-    // 各特徴のレンジ
+    // 各特徴のレンジ（高歩留まりメンバーのみ）
     const ranges = FEATURES.map((f, fi) => ({
-      key: f.key,
-      label: f.label,
-      unit: f.unit,
-      min: members.length > 0 ? Math.min(...members.map(m => m[fi])) : 0,
-      max: members.length > 0 ? Math.max(...members.map(m => m[fi])) : 0,
+      key: f.key, label: f.label, unit: f.unit,
+      min: highYieldMembers.length > 0 ? Math.min(...highYieldMembers.map(m => m[fi])) : 0,
+      max: highYieldMembers.length > 0 ? Math.max(...highYieldMembers.map(m => m[fi])) : 0,
       avg: rawCentroid[fi],
     }));
 
-    // 失敗レコードでこのクラスタに近いものの数
-    let nearFailures = 0;
-    if (failureNorm.length > 0) {
-      failureNorm.forEach(fp => {
-        let minDist = Infinity, closest = 0;
-        centroids.forEach((c, i) => { const d = distance(fp, c); if (d < minDist) { minDist = d; closest = i; } });
-        if (closest === ci) nearFailures++;
-      });
-    }
+    // このクラスタ領域での高歩留まり率
+    const highYieldInCluster = allMemberIdx.filter(i => isHighYield[i]).length;
+    const successRate = allMemberIdx.length > 0 ? Math.round((highYieldInCluster / allMemberIdx.length) * 100) : 0;
 
-    const totalInCluster = members.length + nearFailures;
-    const successRate = totalInCluster > 0 ? Math.round((members.length / totalInCluster) * 100) : 100;
+    const desc = generateDescription(ranges, avgYield);
 
-    // 自動説明生成
-    const desc = generateDescription(ranges, successRate);
-
-    return { id: ci + 1, size: members.length, successRate, centroid, rawCentroid, ranges, description: desc };
-  }).filter(c => c.size > 0).sort((a, b) => b.successRate - a.successRate);
+    return { id: ci + 1, size: highYieldMembers.length, successRate, avgYield, centroid, rawCentroid, ranges, description: desc };
+  }).filter(c => c.size > 0).sort((a, b) => b.avgYield - a.avgYield);
 
   // 特徴量重要度
   const importance = featureImportance(successNorm, failureNorm);
@@ -244,17 +251,27 @@ export function analyzePatterns(logs: Array<Record<string, unknown>>): PatternRe
     return { key: f.key, label: f.label, unit: f.unit, successAvg: Math.round(sAvg * 100) / 100, failureAvg: Math.round(fAvg * 100) / 100, diff: Math.round((sAvg - fAvg) * 100) / 100 };
   });
 
+  // 歩留まり統計
+  const overallAvgYield = Math.round((yieldRates.reduce((a, b) => a + b, 0) / yieldRates.length) * 10) / 10;
+  const highYieldRates = successIdx.map(i => yieldRates[i]);
+  const lowYieldRates = failureIdx.map(i => yieldRates[i]);
+  const highYieldAvg = highYieldRates.length > 0 ? Math.round((highYieldRates.reduce((a, b) => a + b, 0) / highYieldRates.length) * 10) / 10 : 0;
+  const lowYieldAvg = lowYieldRates.length > 0 ? Math.round((lowYieldRates.reduce((a, b) => a + b, 0) / lowYieldRates.length) * 10) / 10 : 0;
+
   return {
     clusters,
     totalHighYield: successIdx.length,
     totalLowYield: failureIdx.length,
     yieldThreshold: Math.round(yieldThreshold),
+    overallAvgYield,
+    highYieldAvg,
+    lowYieldAvg,
     featureImportance: featureImp,
     successVsFailure,
   };
 }
 
-function generateDescription(ranges: Cluster['ranges'], successRate: number): string {
+function generateDescription(ranges: Cluster['ranges'], avgYield: number): string {
   const temp = ranges.find(r => r.key === 'ambient_temp');
   const hum = ranges.find(r => r.key === 'ambient_humidity');
   const press = ranges.find(r => r.key === 'air_pressure');
@@ -262,5 +279,5 @@ function generateDescription(ranges: Cluster['ranges'], successRate: number): st
   if (temp) parts.push(`気温${Math.round(temp.min)}〜${Math.round(temp.max)}℃`);
   if (hum) parts.push(`湿度${Math.round(hum.min)}〜${Math.round(hum.max)}%`);
   if (press) parts.push(`エア圧${press.min.toFixed(2)}〜${press.max.toFixed(2)}MPa`);
-  return `${parts.join('、')}（高歩留まり率${successRate}%）`;
+  return `${parts.join('、')}（平均歩留${avgYield}%）`;
 }
