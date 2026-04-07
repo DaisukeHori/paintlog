@@ -26,9 +26,10 @@ export interface PaintLog {
   // 4. 塗装工程
   coat_count: number | null;
   surface_prep: string | null;
-  drying_method: string | null;
+  drying_method: string | null;     // 後方互換（単一乾燥の場合）
   drying_temp: number | null;
   drying_time: number | null;
+  drying_steps: DryingStep[];       // 複数乾燥ステップ
   film_thickness: number | null;
   fan_power: number | null;
   defects: Record<string, number>; // {"タレ": 3, "ブツ": 1} = NG枚数
@@ -94,9 +95,17 @@ export const CATEGORIES = [
 ] as const;
 
 // 不具合選択肢
+export interface DryingStep {
+  method: string;    // 乾燥方法
+  temp: number | null;  // 乾燥温度（℃）
+  time: number | null;  // 乾燥時間（分）
+  interval: number | null; // 前ステップからのインターバル（分）、最初のステップはnull
+}
+
 export const DEFECT_OPTIONS = [
   'タレ',
-  'ブツ',
+  '黒ブツ',
+  '白ブツ',
   'ハジキ',
   'ゆず肌',
   'ピンホール',

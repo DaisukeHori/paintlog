@@ -64,16 +64,16 @@ describe('turnsToDisplay', () => {
 });
 
 describe('DEFECT_OPTIONS', () => {
-  it('9つの不具合選択肢が定義されている', () => {
-    expect(DEFECT_OPTIONS).toHaveLength(9);
+  it('10個の不具合選択肢が定義されている', () => {
+    expect(DEFECT_OPTIONS).toHaveLength(10);
   });
 
   it('タレが含まれる', () => {
     expect(DEFECT_OPTIONS).toContain('タレ');
   });
 
-  it('ブツが含まれる', () => {
-    expect(DEFECT_OPTIONS).toContain('ブツ');
+  it('黒ブツ・白ブツが含まれる', () => {
+    expect(DEFECT_OPTIONS).toContain('黒ブツ'); expect(DEFECT_OPTIONS).toContain('白ブツ');
   });
 
   it('ハジキが含まれる', () => {

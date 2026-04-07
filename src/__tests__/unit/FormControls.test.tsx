@@ -6,7 +6,7 @@ describe('DefectChips', () => {
   it('全不具合選択肢を表示する', () => {
     render(<DefectChips value={{}} onChange={vi.fn()} />);
     expect(screen.getByText('タレ')).toBeInTheDocument();
-    expect(screen.getByText('ブツ')).toBeInTheDocument();
+    expect(screen.getByText('黒ブツ')).toBeInTheDocument();
     expect(screen.getByText('ハジキ')).toBeInTheDocument();
     expect(screen.getByText('ゆず肌')).toBeInTheDocument();
   });
@@ -30,9 +30,9 @@ describe('DefectChips', () => {
 
   it('バッチ上限でタップ→解除', () => {
     const onChange = vi.fn();
-    render(<DefectChips value={{ 'タレ': 20, 'ブツ': 2 }} onChange={onChange} />);
+    render(<DefectChips value={{ 'タレ': 20, '黒ブツ': 2 }} onChange={onChange} />);
     fireEvent.click(screen.getByText(/タレ/));
-    expect(onChange).toHaveBeenCalledWith({ 'ブツ': 2 });
+    expect(onChange).toHaveBeenCalledWith({ '黒ブツ': 2 });
   });
 
   it('タップで重症度が上がる', () => {
@@ -54,7 +54,7 @@ describe('DefectChips', () => {
   });
 
   it('合計カウントを表示する', () => {
-    render(<DefectChips value={{ 'タレ': 3, 'ブツ': 2 }} onChange={vi.fn()} />);
+    render(<DefectChips value={{ 'タレ': 3, '黒ブツ': 2 }} onChange={vi.fn()} />);
     expect(screen.getByText(/延べ5枚/)).toBeInTheDocument();
   });
 });

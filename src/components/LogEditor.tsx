@@ -10,6 +10,7 @@ import { toLocalDatetimeValue, fromLocalDatetimeValue } from '@/lib/date-utils';
 import PinnedBanner from '@/components/PinnedBanner';
 import FavoritesBar from '@/components/FavoritesBar';
 import StepperInput from '@/components/StepperInput';
+import DryingSteps from '@/components/DryingSteps';
 import TurnsInput from '@/components/TurnsInput';
 import AutocompleteInput from '@/components/AutocompleteInput';
 import { DefectChips, CoatSelector, SliderInput } from '@/components/FormControls';
@@ -383,66 +384,19 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
 
               <CoatSelector value={form.coat_count} onChange={(v) => set('coat_count', v)} pinned={'coat_count' in pinnedFields} onPin={() => togglePin('coat_count')} />
               <AutocompleteInput label="下地処理" fieldName="surface_prep" value={form.surface_prep || ''} onChange={(v) => setTextAndSuggest('surface_prep', 'surface_prep', v)} suggestions={suggestions['surface_prep'] || []} onDeleteSuggestion={(v) => deleteSuggestion('surface_prep', v)} />
-              <AutocompleteInput label="乾燥方法" fieldName="drying_method" value={form.drying_method || ''} onChange={(v) => setTextAndSuggest('drying_method', 'drying_method', v)} suggestions={suggestions['drying_method'] || []} onDeleteSuggestion={(v) => deleteSuggestion('drying_method', v)} placeholder="自然乾燥・強制乾燥・赤外線..." />
-              <div className="grid grid-cols-2 gap-3">
-                <StepperInput label="乾燥温度" unit="℃" value={form.drying_temp} onChange={(v) => set('drying_temp', v)} step={5} min={20} max={200} presets={[60, 80, 120, 140]} pinned={'drying_temp' in pinnedFields} onPin={() => togglePin('drying_temp')} />
-                <div className="bg-white rounded-xl p-3 border border-stone-200 shadow-sm">
-                  <div className="flex items-center gap-1 mb-1.5">
-                    <span className="text-xs text-stone-500 font-medium">乾燥時間</span>
-                    {('drying_time' in pinnedFields) !== undefined && (
-                      <button onClick={() => togglePin('drying_time')}
-                        className={`ml-auto w-7 h-7 rounded-full flex items-center justify-center text-xs ${'drying_time' in pinnedFields ? 'bg-purple-100 text-purple-600' : 'text-stone-400'}`}>📌</button>
-                    )}
-                  </div>
-                  {/* Stepper */}
-                  <div className="flex items-center gap-2">
-                    <button className="min-w-[44px] h-[44px] rounded-xl bg-stone-100 active:bg-stone-200 flex items-center justify-center text-xl select-none touch-manipulation font-medium"
-                      onClick={() => {
-                        const cur = form.drying_time || 0;
-                        const step = cur > 60 ? 60 : 1;
-                        set('drying_time', Math.max(0, cur - step));
-                      }}>−</button>
-                    <div className="flex-1 text-center">
-                      {(form.drying_time || 0) >= 60 ? (
-                        <>
-                          <span className="text-2xl font-semibold tabular-nums">{Math.floor((form.drying_time || 0) / 60)}</span>
-                          <span className="text-xs text-stone-400 ml-1">時間</span>
-                          {((form.drying_time || 0) % 60) > 0 && (
-                            <>
-                              <span className="text-lg font-semibold tabular-nums ml-1">{(form.drying_time || 0) % 60}</span>
-                              <span className="text-xs text-stone-400 ml-0.5">分</span>
-                            </>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <span className="text-2xl font-semibold tabular-nums">{form.drying_time ?? '--'}</span>
-                          <span className="text-xs text-stone-400 ml-1">分</span>
-                        </>
-                      )}
-                    </div>
-                    <button className="min-w-[44px] h-[44px] rounded-xl bg-stone-100 active:bg-stone-200 flex items-center justify-center text-xl select-none touch-manipulation font-medium"
-                      onClick={() => {
-                        const cur = form.drying_time || 0;
-                        const step = cur >= 60 ? 60 : 1;
-                        set('drying_time', Math.min(2880, cur + step));
-                      }}>+</button>
-                  </div>
-                  {/* Presets */}
-                  <div className="flex gap-1.5 mt-2 flex-wrap">
-                    {[
-                      { v: 10, l: '10分' }, { v: 20, l: '20分' }, { v: 30, l: '30分' },
-                      { v: 60, l: '1時間' }, { v: 120, l: '2時間' }, { v: 360, l: '6時間' },
-                      { v: 720, l: '12時間' }, { v: 1440, l: '24時間' }, { v: 2880, l: '48時間' },
-                    ].map((p) => (
-                      <button key={p.v} onClick={() => set('drying_time', p.v)}
-                        className={`px-2.5 py-1.5 rounded-lg text-[11px] touch-manipulation ${
-                          form.drying_time === p.v ? 'bg-orange-100 text-orange-700 border border-orange-300' : 'bg-stone-50 text-stone-500 border border-stone-200'
-                        }`}>{p.l}</button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <DryingSteps steps={form.drying_steps || []}
+                onChange={(steps) => {
+                  set('drying_steps', steps);
+                  // 後方互換: 最初のステップをフラットフィールドにも反映
+                  if (steps.length > 0) {
+                    set('drying_method', steps[0].method || null);
+                    set('drying_temp', steps[0].temp);
+                    set('drying_time', steps[0].time);
+                  }
+                }}
+                suggestions={suggestions['drying_method'] || []}
+                onMethodChange={(v) => setTextAndSuggest('drying_method', 'drying_method', v)}
+                onDeleteSuggestion={(v) => deleteSuggestion('drying_method', v)} />
               <StepperInput label="膜厚" unit="μm" value={form.film_thickness} onChange={(v) => set('film_thickness', v)} step={1} min={0} max={200} presets={[15, 25, 35, 50, 80]} pinned={'film_thickness' in pinnedFields} onPin={() => togglePin('film_thickness')} />
               <SliderInput label="ファン出力" unit="%" value={form.fan_power} onChange={(v) => set('fan_power', v)} min={0} max={100} step={5} pinned={'fan_power' in pinnedFields} onPin={() => togglePin('fan_power')} />
               <DefectChips value={form.defects} onChange={(v) => {
