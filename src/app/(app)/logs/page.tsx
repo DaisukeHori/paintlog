@@ -67,20 +67,30 @@ export default function LogsPage() {
               <button key={log.id} onClick={() => router.push(`/logs/${log.id}`)}
                 className="text-left touch-manipulation active:scale-[0.97] transition-transform rounded-2xl overflow-hidden pl-fade-in"
                 style={{ background: 'var(--pl-surface)', border: '1px solid var(--pl-border)', animationDelay: `${i * 0.03}s` }}>
-                {/* Photo area */}
+                {/* Media area: 写真 > 動画サムネイル > プレースホルダー */}
                 <div className="relative aspect-square overflow-hidden" style={{ background: 'var(--pl-surface-2)' }}>
                   {log.photo_urls.length > 0 ? (
                     <img src={log.photo_urls[0]} alt="" className="w-full h-full object-cover" />
+                  ) : log.video_urls.length > 0 ? (
+                    <div className="w-full h-full relative">
+                      <video src={log.video_urls[0]} preload="metadata" muted playsInline className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
+                          <span className="text-white text-lg ml-0.5">▶</span>
+                        </div>
+                      </div>
+                    </div>
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center gap-1">
                       <span className="text-3xl opacity-30">🎨</span>
-                      <span className="text-[10px]" style={{ color: 'var(--pl-text-3)' }}>写真なし</span>
+                      <span className="text-[10px]" style={{ color: 'var(--pl-text-3)' }}>メディアなし</span>
                     </div>
                   )}
-                  {/* Photo count badge */}
-                  {log.photo_urls.length > 1 && (
-                    <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-bold text-white" style={{ background: 'rgba(0,0,0,0.55)' }}>
-                      {log.photo_urls.length}枚
+                  {/* Media count badge */}
+                  {(log.photo_urls.length + log.video_urls.length) > 1 && (
+                    <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-bold text-white flex gap-1" style={{ background: 'rgba(0,0,0,0.55)' }}>
+                      {log.photo_urls.length > 0 && <span>📷{log.photo_urls.length}</span>}
+                      {log.video_urls.length > 0 && <span>🎬{log.video_urls.length}</span>}
                     </div>
                   )}
                   {/* Yield badge */}
@@ -125,9 +135,14 @@ export default function LogsPage() {
               <button key={log.id} onClick={() => router.push(`/logs/${log.id}`)}
                 className="w-full pl-card text-left touch-manipulation active:scale-[0.99] transition-transform pl-fade-in" style={{ animationDelay: `${i * 0.03}s` }}>
                 <div className="flex gap-3">
-                  {/* Thumbnail */}
+                  {/* Thumbnail: 写真 > 動画 > プレースホルダー */}
                   {log.photo_urls.length > 0 ? (
                     <img src={log.photo_urls[0]} alt="" className="w-16 h-16 object-cover rounded-xl flex-shrink-0" style={{ border: '1px solid var(--pl-border)' }} />
+                  ) : log.video_urls.length > 0 ? (
+                    <div className="w-16 h-16 rounded-xl flex-shrink-0 relative overflow-hidden" style={{ border: '1px solid var(--pl-border)' }}>
+                      <video src={log.video_urls[0]} preload="metadata" muted playsInline className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 flex items-center justify-center"><span className="text-white text-sm bg-black/50 rounded-full w-6 h-6 flex items-center justify-center ml-0.5">▶</span></div>
+                    </div>
                   ) : (
                     <div className="w-16 h-16 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ background: 'var(--pl-surface-2)' }}>
                       <span className="text-xl opacity-30">🎨</span>
