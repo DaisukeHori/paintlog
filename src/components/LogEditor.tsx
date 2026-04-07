@@ -127,10 +127,11 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
     }
   }, [dbId, draft, dbSave, onPromotedToDb]);
 
-  // 確定ボタン（デフォルト値のまま保存したい場合）
+  // 確定ボタン
   async function handleConfirm() {
     if (dbId) {
-      // 既にDB保存済み → 一覧に戻る
+      // 既にDB保存済み → 強制保存して一覧に戻る
+      await dbSave(form as Partial<PaintLogInput>);
       router.push('/logs');
       return;
     }
@@ -311,7 +312,7 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
             <>
               <AutocompleteInput label="塗装種類" fieldName="paint_type" value={form.paint_type || ''} onChange={(v) => setTextAndSuggest('paint_type', 'paint_type', v)} suggestions={suggestions['paint_type'] || []} onDeleteSuggestion={(v) => deleteSuggestion('paint_type', v)} pinned={'paint_type' in pinnedFields} onPin={() => togglePin('paint_type')} />
               <AutocompleteInput label="塗料メーカー・品番" fieldName="paint_product" value={form.paint_product || ''} onChange={(v) => setTextAndSuggest('paint_product', 'paint_product', v)} suggestions={suggestions['paint_product'] || []} onDeleteSuggestion={(v) => deleteSuggestion('paint_product', v)} />
-              <SliderInput label="希釈率" unit="%" value={form.dilution_ratio} onChange={(v) => set('dilution_ratio', v)} min={0} max={50} step={1} pinned={'dilution_ratio' in pinnedFields} onPin={() => togglePin('dilution_ratio')} />
+              <SliderInput label="希釈率" unit="%" value={form.dilution_ratio} onChange={(v) => set('dilution_ratio', v)} min={0} max={100} step={1} pinned={'dilution_ratio' in pinnedFields} onPin={() => togglePin('dilution_ratio')} />
               <StepperInput label="粘度（滴下秒）" unit="秒" value={form.viscosity_seconds} onChange={(v) => set('viscosity_seconds', v)} step={1} min={5} max={40} presets={[13, 15, 20, 25]} pinned={'viscosity_seconds' in pinnedFields} onPin={() => togglePin('viscosity_seconds')}
                 colorFn={(v) => {
                   if (v <= 10) return '#2563EB';      // 青: かなり低粘度
@@ -384,7 +385,62 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
               <AutocompleteInput label="乾燥方法" fieldName="drying_method" value={form.drying_method || ''} onChange={(v) => setTextAndSuggest('drying_method', 'drying_method', v)} suggestions={suggestions['drying_method'] || []} onDeleteSuggestion={(v) => deleteSuggestion('drying_method', v)} placeholder="自然乾燥・強制乾燥・赤外線..." />
               <div className="grid grid-cols-2 gap-3">
                 <StepperInput label="乾燥温度" unit="℃" value={form.drying_temp} onChange={(v) => set('drying_temp', v)} step={5} min={20} max={200} presets={[60, 80, 120, 140]} pinned={'drying_temp' in pinnedFields} onPin={() => togglePin('drying_temp')} />
-                <StepperInput label="乾燥時間" unit="分" value={form.drying_time} onChange={(v) => set('drying_time', v)} step={1} min={0} max={120} presets={[10, 20, 30, 60]} pinned={'drying_time' in pinnedFields} onPin={() => togglePin('drying_time')} />
+                <div className="bg-white rounded-xl p-3 border border-stone-200 shadow-sm">
+                  <div className="flex items-center gap-1 mb-1.5">
+                    <span className="text-xs text-stone-500 font-medium">乾燥時間</span>
+                    {('drying_time' in pinnedFields) !== undefined && (
+                      <button onClick={() => togglePin('drying_time')}
+                        className={`ml-auto w-7 h-7 rounded-full flex items-center justify-center text-xs ${'drying_time' in pinnedFields ? 'bg-purple-100 text-purple-600' : 'text-stone-400'}`}>📌</button>
+                    )}
+                  </div>
+                  {/* Stepper */}
+                  <div className="flex items-center gap-2">
+                    <button className="min-w-[44px] h-[44px] rounded-xl bg-stone-100 active:bg-stone-200 flex items-center justify-center text-xl select-none touch-manipulation font-medium"
+                      onClick={() => {
+                        const cur = form.drying_time || 0;
+                        const step = cur > 60 ? 60 : 1;
+                        set('drying_time', Math.max(0, cur - step));
+                      }}>−</button>
+                    <div className="flex-1 text-center">
+                      {(form.drying_time || 0) >= 60 ? (
+                        <>
+                          <span className="text-2xl font-semibold tabular-nums">{Math.floor((form.drying_time || 0) / 60)}</span>
+                          <span className="text-xs text-stone-400 ml-1">時間</span>
+                          {((form.drying_time || 0) % 60) > 0 && (
+                            <>
+                              <span className="text-lg font-semibold tabular-nums ml-1">{(form.drying_time || 0) % 60}</span>
+                              <span className="text-xs text-stone-400 ml-0.5">分</span>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-2xl font-semibold tabular-nums">{form.drying_time ?? '--'}</span>
+                          <span className="text-xs text-stone-400 ml-1">分</span>
+                        </>
+                      )}
+                    </div>
+                    <button className="min-w-[44px] h-[44px] rounded-xl bg-stone-100 active:bg-stone-200 flex items-center justify-center text-xl select-none touch-manipulation font-medium"
+                      onClick={() => {
+                        const cur = form.drying_time || 0;
+                        const step = cur >= 60 ? 60 : 1;
+                        set('drying_time', Math.min(2880, cur + step));
+                      }}>+</button>
+                  </div>
+                  {/* Presets */}
+                  <div className="flex gap-1.5 mt-2 flex-wrap">
+                    {[
+                      { v: 10, l: '10分' }, { v: 20, l: '20分' }, { v: 30, l: '30分' },
+                      { v: 60, l: '1時間' }, { v: 120, l: '2時間' }, { v: 360, l: '6時間' },
+                      { v: 720, l: '12時間' }, { v: 1440, l: '24時間' }, { v: 2880, l: '48時間' },
+                    ].map((p) => (
+                      <button key={p.v} onClick={() => set('drying_time', p.v)}
+                        className={`px-2.5 py-1.5 rounded-lg text-[11px] touch-manipulation ${
+                          form.drying_time === p.v ? 'bg-orange-100 text-orange-700 border border-orange-300' : 'bg-stone-50 text-stone-500 border border-stone-200'
+                        }`}>{p.l}</button>
+                    ))}
+                  </div>
+                </div>
               </div>
               <StepperInput label="膜厚" unit="μm" value={form.film_thickness} onChange={(v) => set('film_thickness', v)} step={1} min={0} max={200} presets={[15, 25, 35, 50, 80]} pinned={'film_thickness' in pinnedFields} onPin={() => togglePin('film_thickness')} />
               <SliderInput label="ファン出力" unit="%" value={form.fan_power} onChange={(v) => set('fan_power', v)} min={0} max={100} step={5} pinned={'fan_power' in pinnedFields} onPin={() => togglePin('fan_power')} />
@@ -431,13 +487,12 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
           </div>
         ))}
 
-        {/* 確定ボタン（下書きモード時のみ表示） */}
-        {isDraft && (
-          <button onClick={handleConfirm}
-            className="pl-btn pl-btn-primary mt-4">
-            ✓ この内容で記録を確定
-          </button>
-        )}
+        {/* 確定ボタン */}
+        <button onClick={handleConfirm}
+          className="w-full py-4 rounded-xl text-white font-bold text-base touch-manipulation mt-4 active:opacity-80 transition-opacity"
+          style={{ background: 'var(--pl-accent)' }}>
+          ✓ {isDraft ? 'この内容で記録を確定' : '保存して一覧に戻る'}
+        </button>
       </div>
     </div>
   );
