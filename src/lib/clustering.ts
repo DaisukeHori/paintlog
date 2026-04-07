@@ -9,6 +9,7 @@ export const FEATURES = [
   { key: 'ambient_humidity', label: '湿度', unit: '%' },
   { key: 'air_pressure', label: 'エア圧', unit: 'MPa' },
   { key: 'viscosity_seconds', label: '粘度', unit: '秒' },
+  { key: 'hardener_ratio', label: '硬化剤', unit: '%' },
   { key: 'dilution_ratio', label: '希釈率', unit: '%' },
   { key: 'gun_distance', label: 'ガン距離', unit: 'cm' },
   { key: 'film_thickness', label: '膜厚', unit: 'μm' },

@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   const { paintType, conditions } = await req.json();
   const { data: allLogs } = await supabase
     .from('paint_logs')
-    .select('air_pressure,throttle_turns,needle_turns,dilution_ratio,viscosity_seconds,gun_distance,coat_count,film_thickness,fan_power,ambient_temp,ambient_humidity,batch_size,defect_count')
+    .select('air_pressure,throttle_turns,needle_turns,dilution_ratio,hardener_ratio,viscosity_seconds,gun_distance,coat_count,film_thickness,fan_power,ambient_temp,ambient_humidity,batch_size,defect_count,drying_steps')
     .eq('user_id', user.id).eq('paint_type', paintType)
     .order('painted_at', { ascending: false }).limit(50);
   // 歩留まり上位のレコードからレコメンド
