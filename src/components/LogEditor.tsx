@@ -19,7 +19,7 @@ import { RiskAlert, AiRecommend, PhotoAnalysis, VideoAnalysis } from '@/componen
 const FIELD_LABELS: Record<string, string> = {
   ambient_temp: '気温', ambient_humidity: '湿度', booth_temp: 'ブース気温',
   workpiece_temp: 'ワーク温度', paint_temp: '塗料温度', paint_type: '塗装種類',
-  paint_product: '塗料品番', dilution_ratio: '希釈率', viscosity_seconds: '粘度（滴下秒）', air_pressure: 'エア圧',
+  paint_product: '塗料品番', hardener_ratio: '硬化剤比率', dilution_ratio: '希釈率', viscosity_seconds: '粘度（滴下秒）', air_pressure: 'エア圧',
   throttle_turns: '絞り', needle_turns: 'ニードル', gun_type: 'ガン種類',
   gun_distance: 'ガン距離', coat_count: 'コート数', film_thickness: '膜厚',
   fan_power: 'ファン出力', batch_size: 'バッチ枚数', defect_count: 'NG枚数', surface_prep: '下地処理', drying_method: '乾燥方法', drying_temp: '乾燥温度', drying_time: '乾燥時間',
@@ -312,6 +312,7 @@ export default function LogEditor({ initialDraft, onPromotedToDb, existingLogId 
             <>
               <AutocompleteInput label="塗装種類" fieldName="paint_type" value={form.paint_type || ''} onChange={(v) => setTextAndSuggest('paint_type', 'paint_type', v)} suggestions={suggestions['paint_type'] || []} onDeleteSuggestion={(v) => deleteSuggestion('paint_type', v)} pinned={'paint_type' in pinnedFields} onPin={() => togglePin('paint_type')} />
               <AutocompleteInput label="塗料メーカー・品番" fieldName="paint_product" value={form.paint_product || ''} onChange={(v) => setTextAndSuggest('paint_product', 'paint_product', v)} suggestions={suggestions['paint_product'] || []} onDeleteSuggestion={(v) => deleteSuggestion('paint_product', v)} />
+              <SliderInput label="硬化剤比率" unit="%" value={form.hardener_ratio} onChange={(v) => set('hardener_ratio', v)} min={0} max={50} step={1} pinned={'hardener_ratio' in pinnedFields} onPin={() => togglePin('hardener_ratio')} />
               <SliderInput label="希釈率" unit="%" value={form.dilution_ratio} onChange={(v) => set('dilution_ratio', v)} min={0} max={100} step={1} pinned={'dilution_ratio' in pinnedFields} onPin={() => togglePin('dilution_ratio')} />
               <StepperInput label="粘度（滴下秒）" unit="秒" value={form.viscosity_seconds} onChange={(v) => set('viscosity_seconds', v)} step={1} min={5} max={40} presets={[13, 15, 20, 25]} pinned={'viscosity_seconds' in pinnedFields} onPin={() => togglePin('viscosity_seconds')}
                 colorFn={(v) => {

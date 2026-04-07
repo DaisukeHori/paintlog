@@ -14,6 +14,7 @@ export interface PaintLog {
   paint_type: string | null;
   paint_product: string | null;
   dilution_ratio: number | null;
+  hardener_ratio: number | null;   // 硬化剤比率（%）
   viscosity_seconds: number | null;
   paint_lot: string | null;
   // 3. ガン設定
